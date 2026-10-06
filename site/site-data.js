@@ -59,7 +59,6 @@ window.SITE = {
   /* SONGS — 참여한 곡 (오선지 위에 음표로 올라갑니다)
      예: { artist: '아티스트', title: '곡 제목', album: '앨범', link: 'https://...' } */
   songs: [
-    { artist: 'TIOT',              title: '다섯시간의 조각들',          album: 'Time for Us', credit: ['Lyrics', 'Composition'], cover: 'covers/tiot-time-for-us.webp', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2b/6c/73/2b6c73ed-c765-738d-5896-f58eecdf714b/mzaf_12800240483291486193.plus.aac.p.m4a' },
     { artist: 'NCT WISH',          title: 'If You Love Me Let Me Know', album: 'Would You Marry Me? OST Part.3', credit: ['Lyrics', 'Composition'], cover: 'covers/nct-wish.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/86/8b/c2/868bc2c4-5da6-f27b-8a75-aae0e32df9b5/mzaf_8256727450170037493.plus.aac.p.m4a' },
     { artist: 'ENHYPEN',           title: 'Sleep Tight',              album: 'THE SIN : VANISH', credit: ['Lyrics', 'Composition'], cover: 'covers/enhypen-sleep-tight.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/22/3e/6f/223e6f7c-7b11-270a-3bc7-35bf1a2b91ae/mzaf_1374557183856800650.plus.aac.p.m4a' },
     { artist: 'PLAVE',             title: 'Blossom Parade',           album: 'Caligo Pt.2', credit: ['Composition', 'Arrangement'], cover: 'covers/plave.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2c/d4/70/2cd470ee-5111-8aca-8b88-dc52e11868ce/mzaf_9485076833344321189.plus.aac.p.m4a' },
@@ -72,6 +71,7 @@ window.SITE = {
     { artist: 'NouerA',            title: 'W.T.F(un)',                album: '.exe', credit: ['Lyrics', 'Composition', 'Arrangement'], cover: 'covers/nouera-w-t-f-un.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/d6/a9/44/d6a94444-e643-e5a1-e509-0b12ebf7e03b/mzaf_5672324363576625878.plus.aac.p.m4a' },
     { artist: 'CLOSE YOUR EYES',   title: 'What If I Miss Love?',     album: 'OVEREXPOSED', credit: ['Lyrics'], cover: 'covers/close-your-eyes-what-if-i-miss-love.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ef/ce/8b/efce8b9e-af36-1de0-0336-429aaf623cb4/mzaf_10825505994917345599.plus.aac.p.m4a' },
     { artist: 'Henry',             title: 'Only Today',               album: 'Only Today', credit: ['Lyrics'] },
+    { artist: 'TIOT',              title: '다섯시간의 조각들',          album: 'Time for Us', credit: ['Lyrics', 'Composition'], cover: 'covers/tiot-time-for-us.webp', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2b/6c/73/2b6c73ed-c765-738d-5896-f58eecdf714b/mzaf_12800240483291486193.plus.aac.p.m4a' },
   ],
 
   /* ABOUT 문단 */
