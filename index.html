@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DOUBLE LEVEL</title>
+<meta name="description" content="DOUBLE LEVEL — songwriting & production publishing and writer management. Songs for ENHYPEN, PLAVE, ILLIT, NCT WISH and more.">
+<meta name="keywords" content="DOUBLE LEVEL, DBLV, music publishing, songwriting, production, writer management, CHILLER, K-POP">
+<meta property="og:title" content="DOUBLE LEVEL">
+<meta property="og:description" content="Songwriting and production, both. One level higher. — MUSIC, ONE LEVEL HIGHER">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://devil-elora.github.io/double-level/">
+<meta property="og:image" content="https://devil-elora.github.io/double-level/assets/icon-512.png">
+<meta name="theme-color" content="#0A0810">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "DOUBLE LEVEL",
+  "legalName": "DOUBLE LEVEL PRODUCTION Inc.",
+  "alternateName": ["DBLV", "Double Level Production"],
+  "url": "https://double-level.com",
+  "foundingDate": "2025-12-18",
+  "founder": { "@type": "Person", "name": "CHILLER (Kim Kang San)" },
+  "sameAs": ["https://www.instagram.com/doublelevel_official/"],
+  "description": "Songwriting & production publishing and writer management company"
+}
+</script>
+
+<!-- =====================================================================
+     회사 홈페이지 (랜딩)
+     · 대표·프로듀서·곡 목록·연락처는 /site/site-data.js 에서 고칩니다. (코드 몰라도 됨)
+     · 색·크기는 /site/site.css, 동작은 /site/site.js
+     · 협업앱은 /app 주소에 따로 있습니다. 여기엔 직원 로그인 버튼을 두지 않습니다.
+     ===================================================================== -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<link rel="stylesheet" href="site/site.css?v=65">
+<!-- 공연장 3D 용 three.js 연결 (site/world3d.js 가 import('three') 로 쓴다) -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script>
+/* 색 톤: 바탕은 흑백(bw)이 기본, 사진·앨범·캐릭터 같은 세부는 컬러 (대표 결정 2026-09-11).
+   주소에 ?theme=color 를 붙이면 바탕까지 컬러. 화면이 그려지기 전에 정한다(깜빡임 방지) */
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    if (q !== 'color') document.documentElement.dataset.theme = 'bw';
+  } catch (e) { document.documentElement.dataset.theme = 'bw'; }
+})();
+</script>
+</head>
+<body>
+
+<!-- 첫 진입 인트로: 로고 외곽선이 그려진 뒤 채워지고 사라진다 (site/logo-paths.js = 로고 PNG 를 선으로 딴 것) -->
+<div id="intro" aria-hidden="true"><svg id="intro-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+<header id="header">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="DOUBLE LEVEL home">
+      <img src="assets/dblv-white.png?v=2" alt="DOUBLE LEVEL">
+    </a>
+    <nav id="gnb" aria-label="Main menu">
+      <a href="#producer"><span>ROSTER</span><span>ROSTER</span></a>
+      <a href="#songs"><span>DISCOGRAPHY</span><span>DISCOGRAPHY</span></a>
+      <a href="#contact"><span>CONTACT</span><span>CONTACT</span></a>
+    </nav>
+    <button id="ham" aria-label="Open menu"><span></span><span></span></button>
+  </div>
+</header>
+
+<div id="mobile-menu" aria-hidden="true">
+  <a href="#producer">ROSTER</a>
+  <a href="#songs">DISCOGRAPHY</a>
+  <a href="#contact">CONTACT</a>
+  <p class="tag">Tell us about your project.<br>Let's collaborate and make great songs.</p>
+</div>
+
+<main id="top">
+
+  <!-- 1. 하나의 세계: 3D 로고가 열리며 1인칭으로 공연장 통로를 걸어 들어간다 → PRODUCER 부스 → SONGS 부스 → 무대에 닿으면 무대 화면에 CONTACT -->
+  <section id="hero" class="pin" style="--len:16">
+    <div class="stage">
+      <div class="beam" aria-hidden="true"></div>
+      <div class="beam b2" aria-hidden="true"></div>
+      <canvas class="dust" id="dust" aria-hidden="true"></canvas>
+      <div class="marquee" aria-hidden="true"><div><span>MUSIC, ONE LEVEL HIGHER&nbsp;·&nbsp;DOUBLE LEVEL&nbsp;·&nbsp;SONGWRITING&nbsp;·&nbsp;PRODUCING&nbsp;·&nbsp;PUBLISHING&nbsp;·&nbsp;</span><span>MUSIC, ONE LEVEL HIGHER&nbsp;·&nbsp;DOUBLE LEVEL&nbsp;·&nbsp;SONGWRITING&nbsp;·&nbsp;PRODUCING&nbsp;·&nbsp;PUBLISHING&nbsp;·&nbsp;</span></div></div>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="floor" aria-hidden="true"></div>
+
+      <div id="venue" aria-hidden="true"></div>
+
+      <div class="logo3d-wrap" aria-hidden="true">
+        <div class="tilt">
+          <div class="doors" id="doors">
+            <div class="door l"></div>
+            <div class="door r"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flash" aria-hidden="true"></div>
+      <div class="scroll-cue" aria-hidden="true">SCROLL<i></i></div>
+
+      <!-- 공연장 안에서 열리는 장면들 -->
+      <div id="producer" class="scene staff-sec">
+      <div class="bigword" aria-hidden="true"><span class="t">ROSTER</span><span class="b">ROSTER</span></div>
+      <h2 class="sr">ROSTER</h2>
+      <div class="staffs"></div></div>
+      <div id="songs" class="scene staff-sec alt">
+      <div class="bigword" aria-hidden="true"><span class="t">DISCOGRAPHY</span><span class="b">DISCOGRAPHY</span></div>
+      <h2 class="sr">DISCOGRAPHY</h2>
+      <div class="staffwin"><div class="staffs"></div></div></div>
+      <!-- 무대 위에서 열리는 마지막 장면: CONTACT (SONGS 를 지나 무대까지 걸어 들어가면 무대 화면에 뜬다) -->
+      <div id="contact" class="scene contact-sec">
+        <div class="stagebox">
+          <div>
+            <div class="eyebrow">CONTACT</div>
+            <h2 class="h2">TELL US ABOUT YOUR PROJECT.</h2>
+            <p class="lead">Got a song to make together? Drop us a line anytime. <br>Demos, collaborations and writer inquiries are all welcome.</p>
+            <a id="mail-big" class="mail-big" href="mailto:dblv_official@double-level.com">Send a mail
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13 13 3M5 3h8v8"/></svg>
+            </a>
+          </div>
+          <div class="contact-list" id="contact-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <img class="mark" src="assets/dblv-mark-white.png" alt="DBLV">
+    <div class="links" id="foot-links"></div>
+    <div class="credit">&copy; <span data-year>2026</span> <b>Gayoon (Elora)</b> · Concept, design &amp; development entirely by <b>Gayoon (Elora)</b>. All rights reserved. Unauthorized reproduction or redistribution is prohibited.</div>
+  </div>
+</footer>
+
+<!-- 스크롤 위치와 무관하게 항상 왼쪽 아래에 뜨는 저작권 표시 (제작자 = 가윤/Elora) -->
+<div id="copyfix" aria-label="Copyright">© <span data-year>2026</span> Gayoon (Elora) — All rights reserved. <span class="mk">(Concept, design &amp; development — all of it.)</span></div>
+
+<button id="top-btn" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 13V3M3 8l5-5 5 5"/></svg>
+</button>
+
+<script src="site/site-data.js?v=65"></script>
+<script src="site/logo-paths.js?v=65"></script>
+<script src="site/world3d.js?v=65"></script>
+<script src="site/site.js?v=65"></script>
+</body>
+</html>
