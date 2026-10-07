@@ -110,9 +110,9 @@
     /* 대표 스케치대로: 선은 원래 모양(7·7·7·G 획 잎 + Y 줄기), 그 바로 뒤에 네잎클로버 모양의 빛이 선에서 살짝만 번진다. 돌지 않고 고정. */
     const SEVEN = 'M-13 -12 L13 -12 L-2 16';                                   // 7
     const GEE = 'M13 -8 A13 13 0 1 0 13 6 L2 6';                                // G
-    const leaf = (d, a) => `<path d="${d}" transform="translate(50 50) rotate(${a}) translate(0 -24)"/>`;
+    const leaf = (d, a, g = 0) => `<path d="${d}" transform="translate(50 50) rotate(${a}) translate(0 -24) rotate(${g})"/>`; // g: 잎 위치는 그대로 두고 글자만 되돌려 세우는 각도
     cur.innerHTML = `<svg viewBox="0 0 100 130" aria-hidden="true" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
-      ${leaf(SEVEN, 315)}${leaf(SEVEN, 45)}${leaf(GEE, 135)}${leaf(SEVEN, 225)}
+      ${leaf(SEVEN, 315)}${leaf(SEVEN, 45)}${leaf(GEE, 135, -135)}${leaf(SEVEN, 225)}
       <path d="M40 92 L50 106 L60 92 M50 106 L50 126"/>
     </svg>`;
     document.body.appendChild(cur);
