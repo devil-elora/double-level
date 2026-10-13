@@ -286,7 +286,7 @@
   /* 한 세계의 구간표(hero --len:16): 문 열림 → 통로를 걸어 PRODUCER 부스(정지, 페이지 열림) → 다시 걸어 SONGS 부스(정지, 페이지 열림) → 무대까지 걸어가 무대 화면에 CONTACT */
   /* 스크롤 구간 배분. 데스크톱은 3D 걷기(walk*)에 길이를 쓰지만, 모바일은 걷기를 없애고 로스터·음원·연락처에 길이를 몰아준다 */
   const WORLD = LITE
-    ? { prompt: [.05, .13], doors: [.13, .26], walk: [.26, .3], producer: [.3, .56], walk2: [.56, .58], songs: [.58, .84], walk3: [.84, .88], contact: [.88, 1] }
+    ? { prompt: [.05, .12], doors: [.12, .24], walk: [.24, .28], producer: [.28, .5], walk2: [.6, .64], songs: [.62, .84], walk3: [.86, .88], contact: [.88, 1] }   /* 모바일: 로스터 .28~.5 펼침 + .5~.62 머무름(hold) → 다음으로 천천히 넘어감 */
     : { prompt: [.04, .09], doors: [.09, .2], walk: [.09, .4], producer: [.4, .55], walk2: [.55, .6], songs: [.6, .84], walk3: [.84, .89], contact: [.89, 1] };
   const STOPS = [{ key: 'producer', label: 'ROSTER', at: .5, side: -1 }, { key: 'songs', label: 'DISCOGRAPHY', at: .86, side: 1 }];
   /* 스크롤 진행도 → 통로 위 캐릭터 위치(0~1): 부스 앞에서는 멈춰 서 있고, 마지막엔 무대 앞(1)까지 간다 */
