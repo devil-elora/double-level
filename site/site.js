@@ -23,7 +23,11 @@
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   /* 모바일·터치 기기 = 라이트 모드: 무거운 3D 공연장·먼지 캔버스를 끄고, CSS 가 고정헤더 블러·상시 3D 애니메이션도 멈춰 스크롤을 부드럽게 한다 */
   const LITE = matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 900px)').matches;
-  try { document.documentElement.classList.toggle('lite', LITE); } catch (e) {}
+  try {
+    document.documentElement.classList.toggle('lite', LITE);
+    /* 모바일: 3D "걸어 들어가기"가 없으니 히어로 핀(스크롤 길이)을 16→7화면으로 줄여 첫 스크롤을 짧게 */
+    if (LITE) { const _h = document.getElementById('hero'); if (_h) _h.style.setProperty('--len', '7'); }
+  } catch (e) {}
 
   /* ---------- 첫 진입 인트로: 로고 외곽선을 펜으로 긋듯 그린 뒤,
      안쪽은 볼륨 미터처럼 세로 막대들이 음악에 반응하듯 출렁이며 아래서부터 차오른다(대표 지시). 다 차면 걷어낸다. ---------- */
@@ -280,7 +284,10 @@
   /* reg(sec, fn, a, b): 고정 구간(sec)의 진행도 중 [a,b] 구간을 0~1 로 바꿔 fn 에 준다 — 한 화면 안에서 여러 장면이 이어진다 */
   const reg = (sec, fn, a = 0, b = 1) => { if (sec && !sec.hidden) pins.push({ sec, fn: p => fn(range(p, a, b)), raw: fn, top: 0, len: 1, p: -1 }); };
   /* 한 세계의 구간표(hero --len:16): 문 열림 → 통로를 걸어 PRODUCER 부스(정지, 페이지 열림) → 다시 걸어 SONGS 부스(정지, 페이지 열림) → 무대까지 걸어가 무대 화면에 CONTACT */
-  const WORLD = { prompt: [.04, .09], doors: [.09, .2], walk: [.09, .4], producer: [.4, .55], walk2: [.55, .6], songs: [.6, .84], walk3: [.84, .89], contact: [.89, 1] };
+  /* 스크롤 구간 배분. 데스크톱은 3D 걷기(walk*)에 길이를 쓰지만, 모바일은 걷기를 없애고 로스터·음원·연락처에 길이를 몰아준다 */
+  const WORLD = LITE
+    ? { prompt: [.05, .13], doors: [.13, .26], walk: [.26, .3], producer: [.3, .56], walk2: [.56, .58], songs: [.58, .84], walk3: [.84, .88], contact: [.88, 1] }
+    : { prompt: [.04, .09], doors: [.09, .2], walk: [.09, .4], producer: [.4, .55], walk2: [.55, .6], songs: [.6, .84], walk3: [.84, .89], contact: [.89, 1] };
   const STOPS = [{ key: 'producer', label: 'ROSTER', at: .5, side: -1 }, { key: 'songs', label: 'DISCOGRAPHY', at: .86, side: 1 }];
   /* 스크롤 진행도 → 통로 위 캐릭터 위치(0~1): 부스 앞에서는 멈춰 서 있고, 마지막엔 무대 앞(1)까지 간다 */
   const walkOf = p => {
