@@ -21,6 +21,9 @@
   const range = (p, a, b) => clamp((p - a) / (b - a), 0, 1);
   const ease = t => (t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* 모바일·터치 기기 = 라이트 모드: 무거운 3D 공연장·먼지 캔버스를 끄고, CSS 가 고정헤더 블러·상시 3D 애니메이션도 멈춰 스크롤을 부드럽게 한다 */
+  const LITE = matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 900px)').matches;
+  try { document.documentElement.classList.toggle('lite', LITE); } catch (e) {}
 
   /* ---------- 첫 진입 인트로: 로고 외곽선을 펜으로 긋듯 그린 뒤,
      안쪽은 볼륨 미터처럼 세로 막대들이 음악에 반응하듯 출렁이며 아래서부터 차오른다(대표 지시). 다 차면 걷어낸다. ---------- */
@@ -140,7 +143,7 @@
   }
   const warp = { k: 0 };   // (예전 워프 연출용, 지금은 0 고정)
   const dust = $('#dust');
-  if (dust && dust.getContext && !reduce) {
+  if (dust && dust.getContext && !reduce && !LITE) {
     const ctx = dust.getContext('2d');
     let W = 0, H = 0, ps = [], mx = 0, my = 0;
     /* 은은한 먼지만 (글자·음표는 번잡해서 뺐다 — 대표 지시) */
@@ -305,7 +308,7 @@
     if (btn) btn.addEventListener('click', () => window.scrollTo({ top: atWorld(WORLD.walk[0] + .02), behavior: 'smooth' }));
     /* 공연장 3D: 준비되면 붙는다. 실패하면(WebGL 없음) 문만 열리고 다음 장면으로 간다 */
     let world = null;
-    if (venue && window.DBLV3D && !reduce) {
+    if (venue && window.DBLV3D && !reduce && !LITE) {
       window.DBLV3D.mount(venue, { stops: STOPS }).then(w => { world = w; venue.classList.add('on'); }).catch(e => console.warn('[DBLV 3D] failed to load the venue', e && e.message));
     }
     reg(hero, p => {

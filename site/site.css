@@ -675,6 +675,16 @@ footer .credit b { color: inherit; font-weight: inherit; font-size: inherit; }
   .reveal { transition: none; }
 }
 
+/* ── 모바일·터치 라이트 모드: 스크롤을 부드럽게 (무거운 블러·상시 3D 애니메이션 정지) ── */
+@media (pointer: coarse), (max-width: 900px) {
+  /* 고정 요소의 backdrop-blur 는 스크롤마다 뒤를 다시 흐려 모바일 렉의 주범 → 반투명 단색으로 */
+  #header.scrolled { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(10, 8, 16, .93); }
+  .stagebox { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(7, 7, 12, .92); }
+  #top-btn { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(23, 18, 38, .95); }
+  /* 상시 도는 3D 로고 흔들림·광택·빛줄기는 매 프레임 합성 비용 → 모바일에선 정지 */
+  .doors, .layer.face, #hero .beam, .pcard .shine { animation: none !important; }
+}
+
 /* 베끼기 억제 — 사진·3D 화면은 끌어서 저장할 수 없게 (글자 선택은 그대로) */
 img, canvas, video { -webkit-user-drag: none; user-drag: none; }
 .bigword, .staffs .cap, .roster .name { -webkit-user-select: none; user-select: none; }
