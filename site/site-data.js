@@ -54,6 +54,8 @@ window.SITE = {
     { name: 'July',    ko: '',       role: 'Topliner',                    photo: 'july.jpg' },
     { name: 'Juflowernb', ko: 'Kim Ju Hwa', role: 'Producer',                photo: 'juflower.jpg?v=2' },
     { name: 'Saizy',   ko: 'Choi Jun Hwan', role: 'Producer',                photo: 'saizy.jpg' },
+    { name: 'Earcandy', ko: '',          role: 'Producer',                photo: 'earcandy.jpg' },
+    { name: 'JESE',     ko: '',          role: 'Producer',                photo: 'jese.jpg' },
   ],
 
   /* SONGS — 참여한 곡 (오선지 위에 음표로 올라갑니다)
