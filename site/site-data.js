@@ -48,6 +48,7 @@ window.SITE = {
   producers: [
     { name: 'CHILLER', ko: 'Kim Kang San', role: 'CEO · Producer · Songwriter', photo: 'ceo.jpg', instagram: 'https://www.instagram.com/777chiller/' },
     { name: 'COLL!N',  ko: 'Kim Hyun Woo', role: 'Topliner',                   photo: 'collin.jpg' },
+    { name: 'Kyaku',   ko: '',          role: 'Producer',                photo: 'kyaku.jpg' },
     { name: 'Owl',     ko: 'Jo Jung Hee', role: 'Producer',                  photo: 'owl.jpg?v=2' },
     { name: 'WuNii',   ko: '',       role: 'Producer',                    photo: 'wunii.jpg', instagram: 'https://www.instagram.com/wuniigurii' },
     { name: 'SIZZ',    ko: 'Jin So Jung',  role: 'Producer',                    photo: 'jinsojung.jpg' },
@@ -56,6 +57,7 @@ window.SITE = {
     { name: 'Saizy',   ko: 'Choi Jun Hwan', role: 'Producer',                photo: 'saizy.jpg' },
     { name: 'Earcandy', ko: '',          role: 'Producer',                photo: 'earcandy.jpg' },
     { name: 'JESE',     ko: '',          role: 'Producer',                photo: 'jese.jpg' },
+    { name: 'hanyu',    ko: '',          role: 'Producer',                photo: 'hanyu.jpg' },
   ],
 
   /* SONGS — 참여한 곡 (오선지 위에 음표로 올라갑니다)
