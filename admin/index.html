@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>DOUBLE LEVEL · ADMIN</title>
+<style>
+  :root{ --bg:#0b0b0f; --panel:#15151c; --panel2:#1d1d26; --line:#2a2a36; --txt:#ececf2; --txt2:#9a9aab; --txt3:#6a6a78; --accent:#ffffff; --ok:#39d98a; --err:#ff6b6b; --r:12px; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--txt); font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI",system-ui,sans-serif; line-height:1.55; -webkit-font-smoothing:antialiased; }
+  a{ color:#9db4ff; }
+  .wrap{ max-width:720px; margin:0 auto; padding:48px 20px 80px; }
+  .brand{ font-weight:800; letter-spacing:4px; font-size:14px; color:var(--txt2); }
+  h1{ font-size:22px; font-weight:700; margin:6px 0 2px; letter-spacing:.5px; }
+  .sub{ color:var(--txt3); font-size:13px; margin-bottom:28px; }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:22px; margin-bottom:18px; }
+  label{ display:block; font-size:13px; color:var(--txt2); margin:14px 0 6px; }
+  label:first-child{ margin-top:0; }
+  input[type=text], input[type=url], select, textarea{ width:100%; height:42px; background:var(--panel2); border:1px solid var(--line); border-radius:9px; color:var(--txt); padding:0 12px; font-size:14px; font-family:inherit; outline:none; }
+  textarea{ height:auto; padding:10px 12px; resize:vertical; }
+  input:focus, select:focus{ border-color:#5a5a6e; }
+  input[type=file]{ font-size:13px; color:var(--txt2); }
+  .row{ display:flex; gap:12px; flex-wrap:wrap; }
+  .row > div{ flex:1; min-width:160px; }
+  .chips{ display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .chip{ display:inline-flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-size:13px; cursor:pointer; user-select:none; }
+  .chip input{ accent-color:var(--accent); }
+  button{ font-family:inherit; cursor:pointer; }
+  .btn{ height:44px; padding:0 20px; background:var(--accent); color:#000; border:0; border-radius:9px; font-size:14px; font-weight:700; }
+  .btn:disabled{ opacity:.5; cursor:default; }
+  .btn.ghost{ background:transparent; color:var(--txt); border:1px solid var(--line); }
+  .tabs{ display:flex; gap:6px; margin-bottom:18px; }
+  .tabs button{ flex:1; height:40px; background:var(--panel); border:1px solid var(--line); border-radius:9px; color:var(--txt2); font-size:13.5px; font-weight:600; }
+  .tabs button.on{ background:var(--panel2); color:var(--txt); border-color:#45455a; }
+  .hide{ display:none; }
+  .msg{ font-size:13px; margin-top:12px; min-height:18px; }
+  .msg.ok{ color:var(--ok); }
+  .msg.err{ color:var(--err); white-space:pre-wrap; }
+  .note{ font-size:12.5px; color:var(--txt3); line-height:1.6; }
+  .note code{ background:var(--panel2); padding:1px 6px; border-radius:5px; color:var(--txt2); }
+  .list-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--line); font-size:14px; }
+  .list-item:first-child{ border-top:0; }
+  .list-item .r{ color:var(--txt3); font-size:12.5px; margin-left:auto; }
+  .topbar{ display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+  .topbar .r{ margin-left:auto; display:flex; gap:10px; }
+  .link{ background:none; border:0; color:var(--txt3); font-size:12.5px; text-decoration:underline; padding:0; }
+  .q{ font-size:14px; color:var(--txt); margin:14px 0 6px; }
+  .spin{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:sp .7s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes sp{ to{ transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">DOUBLE LEVEL</div>
+  <h1>ADMIN</h1>
+  <div class="sub">프로듀서 · 음원 관리</div>
+
+  <!-- ========== 1. 잠금 ========== -->
+  <section id="gate" class="card">
+    <label>코드</label>
+    <input type="text" id="g-code" autocomplete="off" inputmode="numeric" placeholder="">
+    <div class="q">사이트에서 마우스 포인터의 의미는?</div>
+    <input type="text" id="g-answer" autocomplete="off" placeholder="">
+    <div style="margin-top:18px"><button class="btn" id="g-btn">입장</button></div>
+    <div class="msg err" id="g-msg"></div>
+  </section>
+
+  <!-- ========== 2. 토큰 등록 (최초 1회) ========== -->
+  <section id="setup" class="card hide">
+    <h1 style="font-size:17px;margin:0 0 10px">GitHub 토큰 등록 (최초 1회)</h1>
+    <p class="note">
+      사이트에 글을 쓰려면 저장소 쓰기 권한이 필요합니다. 아래에서 토큰을 한 번만 발급해 붙여넣으면, 이 브라우저에만 저장됩니다.<br><br>
+      1. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> 열기<br>
+      2. <b>Repository access</b> → Only select repositories → <code>devil-elora/double-level</code><br>
+      3. <b>Permissions</b> → Repository permissions → <b>Contents</b> = <b>Read and write</b><br>
+      4. Generate token → 복사 → 아래 붙여넣기
+    </p>
+    <label>토큰 (ghp_… 또는 github_pat_…)</label>
+    <input type="text" id="tok-input" autocomplete="off" placeholder="github_pat_...">
+    <div style="margin-top:16px"><button class="btn" id="tok-btn">저장하고 확인</button></div>
+    <div class="msg" id="tok-msg"></div>
+  </section>
+
+  <!-- ========== 3. 관리 ========== -->
+  <section id="app" class="hide">
+    <div class="topbar">
+      <div class="note" id="repo-state"></div>
+      <div class="r">
+        <button class="link" id="token-change">토큰 바꾸기</button>
+        <button class="link" id="logout">잠그기</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button data-tab="producer" class="on">프로듀서 추가</button>
+      <button data-tab="song">음원 추가</button>
+      <button data-tab="list">현재 목록</button>
+    </div>
+
+    <!-- 프로듀서 -->
+    <div class="card tabpane" data-pane="producer">
+      <div class="row">
+        <div><label>이름 *</label><input type="text" id="p-name" placeholder="Earcandy"></div>
+        <div><label>역할 *</label>
+          <select id="p-role"><option>Producer</option><option>Topliner</option><option value="__custom">직접 입력…</option></select>
+          <input type="text" id="p-role-custom" class="hide" placeholder="역할 직접 입력" style="margin-top:8px">
+        </div>
+      </div>
+      <label>사진 * (자동으로 긴 변 1200px JPG 로 변환)</label>
+      <input type="file" id="p-photo" accept="image/*">
+      <div class="row">
+        <div><label>본명 (선택)</label><input type="text" id="p-ko" placeholder="Kim Kang San"></div>
+        <div><label>인스타그램 URL (선택)</label><input type="url" id="p-insta" placeholder="https://www.instagram.com/…"></div>
+      </div>
+      <label>위치</label>
+      <select id="p-pos"><option value="__end">맨 끝에 추가</option></select>
+      <div style="margin-top:18px"><button class="btn" id="p-submit">사이트에 추가</button></div>
+      <div class="msg" id="p-msg"></div>
+    </div>
+
+    <!-- 음원 -->
+    <div class="card tabpane hide" data-pane="song">
+      <div class="row">
+        <div><label>아티스트 *</label><input type="text" id="s-artist" placeholder="NCT WISH"></div>
+        <div><label>곡 제목 *</label><input type="text" id="s-title" placeholder="If You Love Me Let Me Know"></div>
+      </div>
+      <label>앨범 *</label><input type="text" id="s-album" placeholder="앨범명">
+      <label>크레딧 * (더블레벨이 맡은 일)</label>
+      <div class="chips">
+        <label class="chip"><input type="checkbox" value="Lyrics"> 작사 (Lyrics)</label>
+        <label class="chip"><input type="checkbox" value="Composition"> 작곡 (Composition)</label>
+        <label class="chip"><input type="checkbox" value="Arrangement"> 편곡 (Arrangement)</label>
+      </div>
+      <label>커버 이미지 (선택)</label>
+      <input type="file" id="s-cover" accept="image/*">
+      <label>미리듣기 URL (선택 · iTunes m4a)</label>
+      <input type="url" id="s-preview" placeholder="https://audio-ssl.itunes.apple.com/…m4a">
+      <div style="margin-top:18px"><button class="btn" id="s-submit">사이트에 추가</button></div>
+      <div class="msg" id="s-msg"></div>
+    </div>
+
+    <!-- 목록 -->
+    <div class="card tabpane hide" data-pane="list">
+      <div id="list-body"><span class="note">불러오는 중…</span></div>
+      <div style="margin-top:14px"><button class="btn ghost" id="list-reload">새로고침</button></div>
+    </div>
+  </section>
+
+  <p class="note" style="margin-top:28px">
+    추가하면 저장소에 커밋되고, GitHub Pages 재빌드 후 약 1분 뒤 <a href="https://double-level.com" target="_blank" rel="noopener">double-level.com</a> 에 반영됩니다. 반영 후 사이트에서 <code>Ctrl+F5</code> 하면 바로 보입니다.
+  </p>
+</div>
+
+<script>
+const REPO = { owner:'devil-elora', name:'double-level', branch:'main' };
+const API = 'https://api.github.com';
+const TKEY = 'dblv_gh_token';
+const $ = s => document.querySelector(s);
+
+/* ---------- 잠금 ---------- */
+const norm = s => (s||'').toLowerCase().replace(/\s+/g,'');
+function checkGate(){
+  const vals = [norm($('#g-code').value), norm($('#g-answer').value)].sort();
+  return JSON.stringify(vals) === JSON.stringify(['777','7777']);
+}
+$('#g-btn').onclick = () => {
+  if(!checkGate()){ $('#g-msg').textContent = '코드 또는 답이 맞지 않습니다.'; return; }
+  sessionStorage.setItem('dblv_admin_ok','1');
+  $('#g-msg').textContent = '';
+  afterGate();
+};
+['#g-code','#g-answer'].forEach(s => $(s).addEventListener('keydown', e => { if(e.key==='Enter') $('#g-btn').click(); }));
+
+function afterGate(){
+  $('#gate').classList.add('hide');
+  if(getToken()){ showApp(); } else { $('#setup').classList.remove('hide'); }
+}
+
+/* ---------- 토큰 ---------- */
+const getToken = () => { try{ return localStorage.getItem(TKEY)||''; }catch(e){ return ''; } };
+const setToken = t => { try{ localStorage.setItem(TKEY, t.trim()); }catch(e){} };
+
+$('#tok-btn').onclick = async () => {
+  const t = $('#tok-input').value.trim();
+  if(!t){ setMsg('#tok-msg','err','토큰을 붙여넣어 주세요.'); return; }
+  setToken(t);
+  setMsg('#tok-msg','', '<span class="spin"></span>확인 중…');
+  try{
+    await gh(`/repos/${REPO.owner}/${REPO.name}`); // 접근 확인
+    $('#setup').classList.add('hide');
+    showApp();
+  }catch(e){
+    setMsg('#tok-msg','err','토큰 확인 실패 — 권한(Contents: Read and write)과 저장소 선택을 확인하세요.\n'+e.message);
+  }
+};
+$('#token-change').onclick = () => {
+  $('#app').classList.add('hide');
+  $('#tok-input').value = getToken();
+  $('#setup').classList.remove('hide');
+};
+$('#logout').onclick = () => { sessionStorage.removeItem('dblv_admin_ok'); location.reload(); };
+
+/* ---------- GitHub API ---------- */
+async function gh(path, opts={}){
+  const r = await fetch(API+path, { ...opts, headers:{
+    'Authorization':'Bearer '+getToken(),
+    'Accept':'application/vnd.github+json',
+    'X-GitHub-Api-Version':'2022-11-28',
+    ...(opts.headers||{})
+  }});
+  if(!r.ok){
+    let d=''; try{ d=(await r.json()).message||''; }catch(e){}
+    throw new Error(r.status+' '+(d||r.statusText));
+  }
+  return r.status===204 ? null : r.json();
+}
+async function getFile(path){
+  const d = await gh(`/repos/${REPO.owner}/${REPO.name}/contents/${path}?ref=${REPO.branch}&t=${Date.now()}`);
+  const bin = atob(d.content.replace(/\s/g,''));
+  const text = new TextDecoder('utf-8').decode(Uint8Array.from(bin, c=>c.charCodeAt(0)));
+  return { text, sha:d.sha };
+}
+async function commitFiles(files, message){
+  const B = REPO.branch, base = `/repos/${REPO.owner}/${REPO.name}`;
+  const ref = await gh(`${base}/git/ref/heads/${B}`);
+  const headSha = ref.object.sha;
+  const headCommit = await gh(`${base}/git/commits/${headSha}`);
+  const tree = [];
+  for(const f of files){
+    const blob = await gh(`${base}/git/blobs`, { method:'POST', body: JSON.stringify({ content:f.content, encoding:f.encoding }) });
+    tree.push({ path:f.path, mode:'100644', type:'blob', sha:blob.sha });
+  }
+  const newTree = await gh(`${base}/git/trees`, { method:'POST', body: JSON.stringify({ base_tree:headCommit.tree.sha, tree }) });
+  const commit = await gh(`${base}/git/commits`, { method:'POST', body: JSON.stringify({ message, tree:newTree.sha, parents:[headSha] }) });
+  await gh(`${base}/git/refs/heads/${B}`, { method:'PATCH', body: JSON.stringify({ sha:commit.sha }) });
+  return commit.sha;
+}
+
+/* ---------- 유틸 ---------- */
+function setMsg(sel, cls, html){ const el=$(sel); el.className='msg '+(cls||''); el.innerHTML=html; }
+function slug(s){ return (s||'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,''); }
+function resizeImage(file, max=1200, q=0.88){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{ let w=img.width,h=img.height; const r=Math.min(1,max/Math.max(w,h));
+      const cw=Math.max(1,Math.round(w*r)), ch=Math.max(1,Math.round(h*r));
+      const c=document.createElement('canvas'); c.width=cw; c.height=ch;
+      c.getContext('2d').drawImage(img,0,0,cw,ch);
+      c.toBlob(b=>{ const fr=new FileReader(); fr.onload=()=>resolve(fr.result.split(',')[1]); fr.onerror=reject; fr.readAsDataURL(b); },'image/jpeg',q);
+    };
+    img.onerror=()=>reject(new Error('이미지를 읽지 못했습니다.'));
+    const fr=new FileReader(); fr.onload=()=>img.src=fr.result; fr.onerror=reject; fr.readAsDataURL(file);
+  });
+}
+function bumpVersion(html){
+  const m = html.match(/site-data\.js\?v=(\d+)/);
+  if(!m) return html;
+  const from=m[1], to=String(parseInt(from,10)+1);
+  return html.split('?v='+from).join('?v='+to);
+}
+function insertAtArrayEnd(text, key, entry){
+  const si = text.indexOf(key+':');
+  const rest = text.slice(si);
+  const m = rest.match(/\n([ \t]*)\],/);
+  const pos = si + m.index;
+  return text.slice(0,pos) + '\n    ' + entry + text.slice(pos);
+}
+function insertBeforeProducer(text, beforeName, entry){
+  let i = text.indexOf("name: '"+beforeName+"'");
+  if(i<0) i = text.indexOf('name: "'+beforeName+'"');
+  if(i<0) return null;
+  const ls = text.lastIndexOf('\n', i)+1;
+  return text.slice(0,ls) + '    ' + entry + '\n' + text.slice(ls);
+}
+const J = v => JSON.stringify(v);
+
+/* ---------- 프로듀서 추가 ---------- */
+$('#p-role').onchange = e => $('#p-role-custom').classList.toggle('hide', e.target.value!=='__custom');
+$('#p-submit').onclick = async () => {
+  const name = $('#p-name').value.trim();
+  let role = $('#p-role').value; if(role==='__custom') role = $('#p-role-custom').value.trim();
+  const ko = $('#p-ko').value.trim();
+  const insta = $('#p-insta').value.trim();
+  const file = $('#p-photo').files[0];
+  const pos = $('#p-pos').value;
+  if(!name || !role || !file){ setMsg('#p-msg','err','이름 · 역할 · 사진은 필수입니다.'); return; }
+  $('#p-submit').disabled=true; setMsg('#p-msg','', '<span class="spin"></span>추가하는 중…');
+  try{
+    const b64 = await resizeImage(file);
+    const fn = (slug(name) || ('p'+Date.now())) + '.jpg';
+    const sd = await getFile('site/site-data.js');
+    const ix = await getFile('index.html');
+    const parts = [`name: ${J(name)}`, `ko: ${J(ko)}`, `role: ${J(role)}`, `photo: ${J(fn)}`];
+    if(insta) parts.push(`instagram: ${J(insta)}`);
+    const entry = `{ ${parts.join(', ')} },`;
+    let newSd = pos!=='__end' ? insertBeforeProducer(sd.text, pos, entry) : null;
+    if(!newSd) newSd = insertAtArrayEnd(sd.text, 'producers', entry);
+    await commitFiles([
+      { path:`site/img/${fn}`, content:b64, encoding:'base64' },
+      { path:'site/site-data.js', content:newSd, encoding:'utf-8' },
+      { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
+    ], `add producer: ${name}`);
+    setMsg('#p-msg','ok', `추가됨 — ${name}. 약 1분 뒤 사이트에 반영됩니다.`);
+    ['#p-name','#p-ko','#p-insta'].forEach(s=>$(s).value=''); $('#p-photo').value='';
+    loadRoster();
+  }catch(e){ setMsg('#p-msg','err','실패: '+e.message); }
+  finally{ $('#p-submit').disabled=false; }
+};
+
+/* ---------- 음원 추가 ---------- */
+$('#s-submit').onclick = async () => {
+  const artist=$('#s-artist').value.trim(), title=$('#s-title').value.trim(), album=$('#s-album').value.trim();
+  const credits=[...document.querySelectorAll('[data-pane="song"] .chip input:checked')].map(c=>c.value);
+  const cover=$('#s-cover').files[0]; const preview=$('#s-preview').value.trim();
+  if(!artist||!title||!album||!credits.length){ setMsg('#s-msg','err','아티스트 · 제목 · 앨범 · 크레딧은 필수입니다.'); return; }
+  $('#s-submit').disabled=true; setMsg('#s-msg','', '<span class="spin"></span>추가하는 중…');
+  try{
+    const files=[]; let coverName='';
+    if(cover){ const b64=await resizeImage(cover,1000,0.9); coverName=(slug(artist+'-'+title)||('cover'+Date.now()))+'.jpg'; files.push({ path:`site/img/covers/${coverName}`, content:b64, encoding:'base64' }); }
+    const sd = await getFile('site/site-data.js');
+    const ix = await getFile('index.html');
+    const parts=[`artist: ${J(artist)}`, `title: ${J(title)}`, `album: ${J(album)}`, `credit: [${credits.map(J).join(', ')}]`];
+    if(coverName) parts.push(`cover: ${J('covers/'+coverName)}`);
+    if(preview) parts.push(`preview: ${J(preview)}`);
+    const entry = `{ ${parts.join(', ')} },`;
+    const newSd = insertAtArrayEnd(sd.text, 'songs', entry);
+    files.push({ path:'site/site-data.js', content:newSd, encoding:'utf-8' });
+    files.push({ path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' });
+    await commitFiles(files, `add song: ${artist} - ${title}`);
+    setMsg('#s-msg','ok', `추가됨 — ${artist} · ${title}. 약 1분 뒤 반영됩니다.`);
+    ['#s-artist','#s-title','#s-album','#s-preview'].forEach(s=>$(s).value=''); $('#s-cover').value='';
+    document.querySelectorAll('[data-pane="song"] .chip input').forEach(c=>c.checked=false);
+  }catch(e){ setMsg('#s-msg','err','실패: '+e.message); }
+  finally{ $('#s-submit').disabled=false; }
+};
+
+/* ---------- 목록 + 위치 선택 ---------- */
+let producersCache=[];
+function parseList(text, key, rx){
+  const si=text.indexOf(key+':'); const rest=text.slice(si);
+  const end=rest.search(/\n[ \t]*\],/); const block=rest.slice(0,end);
+  const out=[]; let m; while((m=rx.exec(block))) out.push(m);
+  return out;
+}
+async function loadRoster(){
+  try{
+    const sd = await getFile('site/site-data.js');
+    const prod = parseList(sd.text,'producers', /\{ name: ['"](.*?)['"][^\n]*?role: ['"](.*?)['"]/g);
+    producersCache = prod.map(m=>({name:m[1],role:m[2]}));
+    // 위치 드롭다운 채우기
+    const sel=$('#p-pos'); sel.innerHTML='<option value="__end">맨 끝에 추가</option>';
+    producersCache.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.textContent=`"${p.name}" 앞에`; sel.appendChild(o); });
+  }catch(e){}
+}
+async function loadList(){
+  $('#list-body').innerHTML='<span class="note">불러오는 중…</span>';
+  try{
+    const sd = await getFile('site/site-data.js');
+    const prod = parseList(sd.text,'producers', /\{ name: ['"](.*?)['"][^\n]*?role: ['"](.*?)['"]/g);
+    const songs = parseList(sd.text,'songs', /\{ artist: ['"](.*?)['"][^\n]*?title: ['"](.*?)['"]/g);
+    let h = `<div class="note" style="margin-bottom:8px">프로듀서 ${prod.length}</div>`;
+    prod.forEach(m=>h+=`<div class="list-item">${esc(m[1])}<span class="r">${esc(m[2])}</span></div>`);
+    h += `<div class="note" style="margin:18px 0 8px">음원 ${songs.length}</div>`;
+    songs.forEach(m=>h+=`<div class="list-item">${esc(m[2])}<span class="r">${esc(m[1])}</span></div>`);
+    $('#list-body').innerHTML=h;
+  }catch(e){ $('#list-body').innerHTML=`<span class="msg err">목록 실패: ${esc(e.message)}</span>`; }
+}
+const esc = s => (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+$('#list-reload').onclick = loadList;
+
+/* ---------- 탭 ---------- */
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on', x===b));
+  const t=b.dataset.tab;
+  document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('hide', p.dataset.pane!==t));
+  if(t==='list') loadList();
+});
+
+/* ---------- 시작 ---------- */
+function showApp(){
+  $('#app').classList.remove('hide');
+  $('#repo-state').textContent = `저장소: ${REPO.owner}/${REPO.name}`;
+  loadRoster();
+}
+if(sessionStorage.getItem('dblv_admin_ok')==='1'){ $('#gate').classList.add('hide'); afterGate(); }
+</script>
+</body>
+</html>
