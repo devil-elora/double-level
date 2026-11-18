@@ -72,36 +72,17 @@
 
   <!-- ========== 1. 잠금 ========== -->
   <section id="gate" class="card">
-    <label>코드</label>
-    <input type="text" id="g-code" autocomplete="off" inputmode="numeric" placeholder="">
-    <div class="q">사이트에서 마우스 포인터의 의미는?</div>
-    <input type="text" id="g-answer" autocomplete="off" placeholder="">
+    <label>접속 코드</label>
+    <input type="password" id="g-code" autocomplete="off" placeholder="">
     <div style="margin-top:18px"><button class="btn" id="g-btn">입장</button></div>
     <div class="msg err" id="g-msg"></div>
   </section>
 
-  <!-- ========== 2. 토큰 등록 (최초 1회) ========== -->
-  <section id="setup" class="card hide">
-    <h1 style="font-size:17px;margin:0 0 10px">GitHub 토큰 등록 (최초 1회)</h1>
-    <p class="note">
-      사이트에 글을 쓰려면 저장소 쓰기 권한이 필요합니다. 아래에서 토큰을 한 번만 발급해 붙여넣으면, 이 브라우저에만 저장됩니다.<br><br>
-      1. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> 열기<br>
-      2. <b>Repository access</b> → Only select repositories → <code>devil-elora/double-level</code><br>
-      3. <b>Permissions</b> → Repository permissions → <b>Contents</b> = <b>Read and write</b><br>
-      4. Generate token → 복사 → 아래 붙여넣기
-    </p>
-    <label>토큰 (ghp_… 또는 github_pat_…)</label>
-    <input type="text" id="tok-input" autocomplete="off" placeholder="github_pat_...">
-    <div style="margin-top:16px"><button class="btn" id="tok-btn">저장하고 확인</button></div>
-    <div class="msg" id="tok-msg"></div>
-  </section>
-
-  <!-- ========== 3. 관리 ========== -->
+  <!-- ========== 2. 관리 ========== -->
   <section id="app" class="hide">
     <div class="topbar">
       <div class="note" id="repo-state"></div>
       <div class="r">
-        <button class="link" id="token-change">토큰 바꾸기</button>
         <button class="link" id="logout">잠그기</button>
       </div>
     </div>
@@ -183,89 +164,41 @@
 </div>
 
 <script>
-const REPO = { owner:'devil-elora', name:'double-level', branch:'main' };
-const API = 'https://api.github.com';
-const TKEY = 'dblv_gh_token';
+const PROXY = 'https://dblv-claude-proxy.vercel.app/api/admin';
+let ADMIN_CODE = '';
 const $ = s => document.querySelector(s);
 
-/* ---------- 잠금 ---------- */
-const norm = s => (s||'').toLowerCase().replace(/\s+/g,'');
-function checkGate(){
-  const vals = [norm($('#g-code').value), norm($('#g-answer').value)].sort();
-  return JSON.stringify(vals) === JSON.stringify(['777','7777']);
-}
-$('#g-btn').onclick = () => {
-  if(!checkGate()){ $('#g-msg').textContent = '코드 또는 답이 맞지 않습니다.'; return; }
-  sessionStorage.setItem('dblv_admin_ok','1');
-  $('#g-msg').textContent = '';
-  afterGate();
-};
-['#g-code','#g-answer'].forEach(s => $(s).addEventListener('keydown', e => { if(e.key==='Enter') $('#g-btn').click(); }));
-
-function afterGate(){
-  $('#gate').classList.add('hide');
-  if(getToken()){ showApp(); } else { $('#setup').classList.remove('hide'); }
+async function api(action, extra){
+  const r = await fetch(PROXY, { method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({ action, code: ADMIN_CODE, ...(extra||{}) }) });
+  let d={}; try{ d = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(d.error || (r.status+' '+r.statusText));
+  return d;
 }
 
-/* ---------- 토큰 ---------- */
-const getToken = () => { try{ return localStorage.getItem(TKEY)||''; }catch(e){ return ''; } };
-const setToken = t => { try{ localStorage.setItem(TKEY, t.trim()); }catch(e){} };
-
-$('#tok-btn').onclick = async () => {
-  const t = $('#tok-input').value.trim();
-  if(!t){ setMsg('#tok-msg','err','토큰을 붙여넣어 주세요.'); return; }
-  setToken(t);
-  setMsg('#tok-msg','', '<span class="spin"></span>확인 중…');
+/* ---------- 로그인 (코드) — 들어올 때마다 입력 ---------- */
+$('#g-btn').onclick = async () => {
+  const code = $('#g-code').value.trim();
+  if(!code){ setMsg('#g-msg','err','코드를 입력하세요.'); return; }
+  $('#g-btn').disabled = true; setMsg('#g-msg','', '<span class="spin"></span>확인 중…');
+  ADMIN_CODE = code;
   try{
-    await gh(`/repos/${REPO.owner}/${REPO.name}`); // 접근 확인
-    $('#setup').classList.add('hide');
+    await api('login');
+    $('#g-msg').textContent = '';
+    $('#gate').classList.add('hide');
     showApp();
   }catch(e){
-    setMsg('#tok-msg','err','토큰 확인 실패 — 권한(Contents: Read and write)과 저장소 선택을 확인하세요.\n'+e.message);
-  }
+    ADMIN_CODE = '';
+    setMsg('#g-msg','err', /bad code|401/.test(e.message) ? '코드가 맞지 않습니다.' : ('오류: '+e.message));
+  }finally{ $('#g-btn').disabled = false; }
 };
-$('#token-change').onclick = () => {
-  $('#app').classList.add('hide');
-  $('#tok-input').value = getToken();
-  $('#setup').classList.remove('hide');
-};
-$('#logout').onclick = () => { sessionStorage.removeItem('dblv_admin_ok'); location.reload(); };
+$('#g-code').addEventListener('keydown', e => { if(e.key==='Enter') $('#g-btn').click(); });
 
-/* ---------- GitHub API ---------- */
-async function gh(path, opts={}){
-  const r = await fetch(API+path, { ...opts, headers:{
-    'Authorization':'Bearer '+getToken(),
-    'Accept':'application/vnd.github+json',
-    'X-GitHub-Api-Version':'2022-11-28',
-    ...(opts.headers||{})
-  }});
-  if(!r.ok){
-    let d=''; try{ d=(await r.json()).message||''; }catch(e){}
-    throw new Error(r.status+' '+(d||r.statusText));
-  }
-  return r.status===204 ? null : r.json();
-}
-async function getFile(path){
-  const d = await gh(`/repos/${REPO.owner}/${REPO.name}/contents/${path}?ref=${REPO.branch}&t=${Date.now()}`);
-  const bin = atob(d.content.replace(/\s/g,''));
-  const text = new TextDecoder('utf-8').decode(Uint8Array.from(bin, c=>c.charCodeAt(0)));
-  return { text, sha:d.sha };
-}
-async function commitFiles(files, message){
-  const B = REPO.branch, base = `/repos/${REPO.owner}/${REPO.name}`;
-  const ref = await gh(`${base}/git/ref/heads/${B}`);
-  const headSha = ref.object.sha;
-  const headCommit = await gh(`${base}/git/commits/${headSha}`);
-  const tree = [];
-  for(const f of files){
-    const blob = await gh(`${base}/git/blobs`, { method:'POST', body: JSON.stringify({ content:f.content, encoding:f.encoding }) });
-    tree.push({ path:f.path, mode:'100644', type:'blob', sha:blob.sha });
-  }
-  const newTree = await gh(`${base}/git/trees`, { method:'POST', body: JSON.stringify({ base_tree:headCommit.tree.sha, tree }) });
-  const commit = await gh(`${base}/git/commits`, { method:'POST', body: JSON.stringify({ message, tree:newTree.sha, parents:[headSha] }) });
-  await gh(`${base}/git/refs/heads/${B}`, { method:'PATCH', body: JSON.stringify({ sha:commit.sha }) });
-  return commit.sha;
-}
+$('#logout').onclick = () => location.reload();
+
+/* ---------- 파일 읽기/쓰기 (서버 경유) ---------- */
+async function getFile(path){ const d = await api('read', { path }); return { text: d.text }; }
+async function commitFiles(files, message){ const d = await api('commit', { files, message }); return d.sha; }
 
 /* ---------- 유틸 ---------- */
 function setMsg(sel, cls, html){ const el=$(sel); el.className='msg '+(cls||''); el.innerHTML=html; }
@@ -444,10 +377,10 @@ document.addEventListener('paste', e=>{
 /* ---------- 시작 ---------- */
 function showApp(){
   $('#app').classList.remove('hide');
-  $('#repo-state').textContent = `저장소: ${REPO.owner}/${REPO.name}`;
+  $('#repo-state').textContent = 'double-level.com';
   loadRoster();
 }
-if(sessionStorage.getItem('dblv_admin_ok')==='1'){ $('#gate').classList.add('hide'); afterGate(); }
+/* 들어올 때마다 코드 입력 — gate 를 항상 먼저 보여준다 (자동 로그인 없음) */
 </script>
 </body>
 </html>
