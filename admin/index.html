@@ -13,11 +13,11 @@
   .wrap{ max-width:720px; margin:0 auto; padding:48px 20px 80px; }
   .brand{ font-weight:800; letter-spacing:4px; font-size:14px; color:var(--txt2); }
   h1{ font-size:22px; font-weight:700; margin:6px 0 2px; letter-spacing:.5px; }
-  .sub{ color:var(--txt3); font-size:13px; margin-bottom:28px; }
+  .sub{ color:var(--txt3); font-size:12px; letter-spacing:1.5px; margin-bottom:28px; }
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:22px; margin-bottom:18px; }
   label{ display:block; font-size:13px; color:var(--txt2); margin:14px 0 6px; }
   label:first-child{ margin-top:0; }
-  input[type=text], input[type=url], select, textarea{ width:100%; height:42px; background:var(--panel2); border:1px solid var(--line); border-radius:9px; color:var(--txt); padding:0 12px; font-size:14px; font-family:inherit; outline:none; }
+  input[type=text], input[type=password], input[type=url], select, textarea{ width:100%; height:42px; background:var(--panel2); border:1px solid var(--line); border-radius:9px; color:var(--txt); padding:0 12px; font-size:14px; font-family:inherit; outline:none; }
   textarea{ height:auto; padding:10px 12px; resize:vertical; }
   input:focus, select:focus{ border-color:#5a5a6e; }
   input[type=file]{ font-size:13px; color:var(--txt2); }
@@ -62,19 +62,23 @@
   .q{ font-size:14px; color:var(--txt); margin:14px 0 6px; }
   .spin{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:sp .7s linear infinite; vertical-align:-2px; margin-right:6px; }
   @keyframes sp{ to{ transform:rotate(360deg); } }
+  input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus{ -webkit-text-fill-color:var(--txt); -webkit-box-shadow:0 0 0 1000px var(--panel2) inset; caret-color:var(--txt); }
+  .gate-card{ max-width:400px; margin-top:30px; padding:26px 26px 24px; }
+  .gate-card input{ letter-spacing:3px; }
+  .gate-btn{ width:100%; margin-top:18px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="brand">DOUBLE LEVEL</div>
   <h1>ADMIN</h1>
-  <div class="sub">프로듀서 · 음원 관리</div>
+  <div class="sub">ROSTER &amp; DISCOGRAPHY MANAGEMENT</div>
 
   <!-- ========== 1. 잠금 ========== -->
-  <section id="gate" class="card">
+  <section id="gate" class="card gate-card">
     <label>접속 코드</label>
-    <input type="password" id="g-code" autocomplete="off" placeholder="">
-    <div style="margin-top:18px"><button class="btn" id="g-btn">입장</button></div>
+    <input type="password" id="g-code" autocomplete="off" placeholder="••••••••">
+    <button class="btn gate-btn" id="g-btn">입장</button>
     <div class="msg err" id="g-msg"></div>
   </section>
 
