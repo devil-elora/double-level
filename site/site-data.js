@@ -58,6 +58,7 @@ window.SITE = {
     { name: 'Earcandy', ko: '',          role: 'Producer',                photo: 'earcandy.jpg' },
     { name: 'JESE',     ko: '',          role: 'Producer',                photo: 'jese.jpg' },
     { name: 'hanyu',    ko: '',          role: 'Producer',                photo: 'hanyu.jpg' },
+    { name: "ZZ_QA_DELETE", ko: "", role: "Songwriter", photo: "zzqadelete.jpg" },
   ],
 
   /* SONGS — 참여한 곡 (오선지 위에 음표로 올라갑니다)
