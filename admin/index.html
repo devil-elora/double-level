@@ -39,6 +39,20 @@
   .msg.err{ color:var(--err); white-space:pre-wrap; }
   .note{ font-size:12.5px; color:var(--txt3); line-height:1.6; }
   .note code{ background:var(--panel2); padding:1px 6px; border-radius:5px; color:var(--txt2); }
+  .drop{ position:relative; border:1.5px dashed var(--line); border-radius:10px; background:var(--panel2); padding:14px 16px; cursor:pointer; transition:border-color .15s, background .15s; margin-bottom:16px; }
+  .drop:hover{ border-color:#45455a; }
+  .drop:focus{ outline:none; border-color:#5a5a6e; }
+  .drop.drag{ border-color:#8a8aa2; background:#23232e; }
+  .drop-prompt{ text-align:center; }
+  .drop-main{ font-size:13.5px; color:var(--txt2); }
+  .drop-main b{ color:var(--txt); font-weight:700; }
+  .drop-sub{ font-size:11.5px; color:var(--txt3); margin-top:3px; }
+  .drop code{ background:var(--bg); padding:1px 6px; border-radius:5px; color:var(--txt2); font-size:12px; }
+  .drop-preview{ display:flex; align-items:center; gap:12px; }
+  .drop-preview img{ width:52px; height:52px; object-fit:cover; border-radius:7px; border:1px solid var(--line); flex:0 0 auto; }
+  .pv-name{ font-size:13px; color:var(--txt); word-break:break-all; }
+  .pv-sub{ font-size:11.5px; color:var(--txt3); margin-top:2px; }
+  .pv-del{ margin-left:auto; flex:0 0 auto; }
   .list-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--line); font-size:14px; }
   .list-item:first-child{ border-top:0; }
   .list-item .r{ color:var(--txt3); font-size:12.5px; margin-left:auto; }
@@ -93,8 +107,8 @@
     </div>
 
     <div class="tabs">
-      <button data-tab="producer" class="on">프로듀서 추가</button>
-      <button data-tab="song">음원 추가</button>
+      <button data-tab="producer" class="on">ROSTER 추가</button>
+      <button data-tab="song">DISCOGRAPHY 추가</button>
       <button data-tab="list">현재 목록</button>
     </div>
 
@@ -103,12 +117,24 @@
       <div class="row">
         <div><label>이름 *</label><input type="text" id="p-name" placeholder="Earcandy"></div>
         <div><label>역할 *</label>
-          <select id="p-role"><option>Producer</option><option>Topliner</option><option value="__custom">직접 입력…</option></select>
+          <select id="p-role">
+            <option value="Producer">프로듀서 (Producer)</option>
+            <option value="Songwriter">작사가 (Songwriter)</option>
+            <option value="Topliner">탑라이너 (Topliner)</option>
+            <option value="__custom">직접 입력…</option>
+          </select>
           <input type="text" id="p-role-custom" class="hide" placeholder="역할 직접 입력" style="margin-top:8px">
         </div>
       </div>
       <label>사진 * (자동으로 긴 변 1200px JPG 로 변환)</label>
-      <input type="file" id="p-photo" accept="image/*">
+      <div class="drop" id="p-drop" tabindex="0">
+        <input type="file" id="p-photo" accept="image/*" class="hide">
+        <div class="drop-prompt">
+          <div class="drop-main"><b>파일 선택</b> · 끌어다 놓기 · <code>Ctrl+V</code> 붙여넣기</div>
+          <div class="drop-sub">PNG · JPG · WEBP</div>
+        </div>
+        <div class="drop-preview hide"></div>
+      </div>
       <div class="row">
         <div><label>본명 (선택)</label><input type="text" id="p-ko" placeholder="Kim Kang San"></div>
         <div><label>인스타그램 URL (선택)</label><input type="url" id="p-insta" placeholder="https://www.instagram.com/…"></div>
@@ -133,7 +159,14 @@
         <label class="chip"><input type="checkbox" value="Arrangement"> 편곡 (Arrangement)</label>
       </div>
       <label>커버 이미지 (선택)</label>
-      <input type="file" id="s-cover" accept="image/*">
+      <div class="drop" id="s-drop" tabindex="0">
+        <input type="file" id="s-cover" accept="image/*" class="hide">
+        <div class="drop-prompt">
+          <div class="drop-main"><b>파일 선택</b> · 끌어다 놓기 · <code>Ctrl+V</code> 붙여넣기</div>
+          <div class="drop-sub">PNG · JPG · WEBP</div>
+        </div>
+        <div class="drop-preview hide"></div>
+      </div>
       <label>미리듣기 URL (선택 · iTunes m4a)</label>
       <input type="url" id="s-preview" placeholder="https://audio-ssl.itunes.apple.com/…m4a">
       <div style="margin-top:18px"><button class="btn" id="s-submit">사이트에 추가</button></div>
@@ -302,7 +335,7 @@ $('#p-submit').onclick = async () => {
       { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
     ], `add producer: ${name}`);
     setMsg('#p-msg','ok', `추가됨 — ${name}. 약 1분 뒤 사이트에 반영됩니다.`);
-    ['#p-name','#p-ko','#p-insta'].forEach(s=>$(s).value=''); $('#p-photo').value='';
+    ['#p-name','#p-ko','#p-insta'].forEach(s=>$(s).value=''); pDrop.clear();
     loadRoster();
   }catch(e){ setMsg('#p-msg','err','실패: '+e.message); }
   finally{ $('#p-submit').disabled=false; }
@@ -329,7 +362,7 @@ $('#s-submit').onclick = async () => {
     files.push({ path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' });
     await commitFiles(files, `add song: ${artist} - ${title}`);
     setMsg('#s-msg','ok', `추가됨 — ${artist} · ${title}. 약 1분 뒤 반영됩니다.`);
-    ['#s-artist','#s-title','#s-album','#s-preview'].forEach(s=>$(s).value=''); $('#s-cover').value='';
+    ['#s-artist','#s-title','#s-album','#s-preview'].forEach(s=>$(s).value=''); sDrop.clear();
     document.querySelectorAll('[data-pane="song"] .chip input').forEach(c=>c.checked=false);
   }catch(e){ setMsg('#s-msg','err','실패: '+e.message); }
   finally{ $('#s-submit').disabled=false; }
@@ -359,9 +392,9 @@ async function loadList(){
     const sd = await getFile('site/site-data.js');
     const prod = parseList(sd.text,'producers', /\{ name: ['"](.*?)['"][^\n]*?role: ['"](.*?)['"]/g);
     const songs = parseList(sd.text,'songs', /\{ artist: ['"](.*?)['"][^\n]*?title: ['"](.*?)['"]/g);
-    let h = `<div class="note" style="margin-bottom:8px">프로듀서 ${prod.length}</div>`;
+    let h = `<div class="note" style="margin-bottom:8px">ROSTER ${prod.length}</div>`;
     prod.forEach(m=>h+=`<div class="list-item">${esc(m[1])}<span class="r">${esc(m[2])}</span></div>`);
-    h += `<div class="note" style="margin:18px 0 8px">음원 ${songs.length}</div>`;
+    h += `<div class="note" style="margin:18px 0 8px">DISCOGRAPHY ${songs.length}</div>`;
     songs.forEach(m=>h+=`<div class="list-item">${esc(m[2])}<span class="r">${esc(m[1])}</span></div>`);
     $('#list-body').innerHTML=h;
   }catch(e){ $('#list-body').innerHTML=`<span class="msg err">목록 실패: ${esc(e.message)}</span>`; }
@@ -375,6 +408,40 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('hide', p.dataset.pane!==t));
   if(t==='list') loadList();
+});
+
+/* ---------- 파일 입력: 클릭 · 드래그&드롭 · Ctrl+V ---------- */
+function setupDropzone(zoneId, inputId){
+  const zone=$('#'+zoneId), input=$('#'+inputId);
+  const prompt=zone.querySelector('.drop-prompt'), pv=zone.querySelector('.drop-preview');
+  let url='';
+  function render(file){
+    if(url) URL.revokeObjectURL(url);
+    url=URL.createObjectURL(file);
+    pv.innerHTML=`<img src="${url}" alt=""><div><div class="pv-name">${esc(file.name||'붙여넣은 이미지')}</div><div class="pv-sub">${Math.max(1,Math.round(file.size/1024))} KB · 클릭하면 변경</div></div><button type="button" class="link pv-del">제거</button>`;
+    prompt.classList.add('hide'); pv.classList.remove('hide');
+    pv.querySelector('.pv-del').addEventListener('click', e=>{ e.stopPropagation(); clear(); });
+  }
+  function clear(){ if(url){ URL.revokeObjectURL(url); url=''; } input.value=''; pv.innerHTML=''; pv.classList.add('hide'); prompt.classList.remove('hide'); }
+  function setFile(file){ if(!file||!file.type.startsWith('image/')) return false; const dt=new DataTransfer(); dt.items.add(file); input.files=dt.files; render(file); return true; }
+  zone.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', ()=>{ if(input.files[0]) render(input.files[0]); });
+  ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev, e=>{ e.preventDefault(); zone.classList.add('drag'); }));
+  ['dragleave','dragend'].forEach(ev=>zone.addEventListener(ev, e=>{ e.preventDefault(); zone.classList.remove('drag'); }));
+  zone.addEventListener('drop', e=>{ e.preventDefault(); zone.classList.remove('drag'); const f=e.dataTransfer.files[0]; if(f) setFile(f); });
+  return { setFile, clear };
+}
+const pDrop = setupDropzone('p-drop','p-photo');
+const sDrop = setupDropzone('s-drop','s-cover');
+document.addEventListener('paste', e=>{
+  if($('#app').classList.contains('hide')) return;
+  const items = e.clipboardData && e.clipboardData.items; if(!items) return;
+  let file=null;
+  for(const it of items){ if(it.kind==='file' && it.type && it.type.startsWith('image/')){ file=it.getAsFile(); break; } }
+  if(!file) return;
+  const onBtn=document.querySelector('.tabs button.on'); const tab=onBtn?onBtn.dataset.tab:'';
+  if(tab==='producer'){ e.preventDefault(); pDrop.setFile(file); }
+  else if(tab==='song'){ e.preventDefault(); sDrop.setFile(file); }
 });
 
 /* ---------- 시작 ---------- */
