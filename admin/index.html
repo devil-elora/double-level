@@ -90,6 +90,10 @@
   .op:disabled{ opacity:.3; cursor:default; }
   .list-item .del{ flex:0 0 auto; background:transparent; border:1px solid var(--line); color:var(--txt3); font-size:12px; padding:4px 11px; border-radius:7px; }
   .list-item .del:hover{ border-color:var(--err); color:var(--err); }
+  .list-item .grip{ cursor:grab; color:var(--txt3); font-size:14px; flex:0 0 auto; user-select:none; }
+  .list-item.dragging{ opacity:.4; }
+  .list-item.drop-above{ box-shadow:inset 0 3px 0 var(--accent); }
+  .list-item.drop-below{ box-shadow:inset 0 -3px 0 var(--accent); }
 </style>
 </head>
 <body>
@@ -501,7 +505,7 @@ function renderListView(){
     const main = roster ? esc(m[1]) : esc(m[2]);
     const sub  = roster ? esc(m[2]) : esc(m[1]);
     const label = roster ? esc(m[1]) : `${esc(m[1])} · ${esc(m[2])}`;
-    h+=`<div class="list-item">${main}<span class="r">${sub}</span><span class="ops">`
+    h+=`<div class="list-item" draggable="true" data-i="${i}"><span class="grip" title="끌어서 이동">⠿</span>${main}<span class="r">${sub}</span><span class="ops">`
       +`<button type="button" class="op mv" data-kind="${kind}" data-i="${i}" data-dir="-1"${i===0?' disabled':''}>↑</button>`
       +`<button type="button" class="op mv" data-kind="${kind}" data-i="${i}" data-dir="1"${i===arr.length-1?' disabled':''}>↓</button>`
       +`<button type="button" class="op edit" data-kind="${kind}" data-i="${i}">수정</button>`
@@ -511,6 +515,13 @@ function renderListView(){
   $('#list-body').querySelectorAll('.del').forEach(b=>b.onclick=()=>removeItem(b.dataset.kind, parseInt(b.dataset.i,10), b.dataset.label));
   $('#list-body').querySelectorAll('.mv').forEach(b=>b.onclick=()=>moveItem(b.dataset.kind, parseInt(b.dataset.i,10), parseInt(b.dataset.dir,10)));
   $('#list-body').querySelectorAll('.edit').forEach(b=>b.onclick=()=>startEdit(b.dataset.kind, parseInt(b.dataset.i,10)));
+  let dragFrom=null; const items=[...$('#list-body').querySelectorAll('.list-item')];
+  items.forEach((el,i)=>{
+    el.addEventListener('dragstart', e=>{ dragFrom=i; try{e.dataTransfer.effectAllowed='move';}catch(_){} setTimeout(()=>el.classList.add('dragging'),0); });
+    el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); items.forEach(x=>x.classList.remove('drop-above','drop-below')); });
+    el.addEventListener('dragover', e=>{ e.preventDefault(); const r=el.getBoundingClientRect(); const below=e.clientY>r.top+r.height/2; items.forEach(x=>x.classList.remove('drop-above','drop-below')); el.classList.add(below?'drop-below':'drop-above'); });
+    el.addEventListener('drop', e=>{ e.preventDefault(); if(dragFrom===null) return; const r=el.getBoundingClientRect(); const below=e.clientY>r.top+r.height/2; const ib=below?i+1:i; const to=ib>dragFrom?ib-1:ib; const f=dragFrom; dragFrom=null; if(to!==f) moveItemTo(kind, f, to); });
+  });
 }
 document.querySelectorAll('.subtab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.subtab').forEach(x=>x.classList.toggle('on', x===b));
@@ -576,6 +587,34 @@ async function moveItem(kind, index, dir){
     const key = kind==='producer' ? 'producers' : 'songs';
     const newSd = moveEntry(sd.text, key, entryRx(kind), index, dir);
     if(!newSd){ setMsg('#list-msg','err','이동할 수 없습니다.'); return; }
+    await commitFiles([
+      { path:'site/site-data.js', content:newSd, encoding:'utf-8' },
+      { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
+    ], `reorder ${key}`);
+    setMsg('#list-msg','ok','순서 변경됨. 약 1분 뒤 사이트 반영.');
+    loadList(); loadRoster();
+  }catch(e){ setMsg('#list-msg','err','실패: '+e.message); }
+}
+function moveEntryTo(text, key, rx, from, to){
+  if(from===to) return text;
+  const si=text.indexOf(key+':');
+  const lb=text.indexOf('[', si);
+  const rbRel=text.slice(si).search(/\n[ \t]*\],/);
+  const rb=si+rbRel;
+  const inner=text.slice(lb+1, rb);
+  const entries=inner.split('\n').filter(L=>new RegExp(rx.source).test(L));
+  if(from<0||from>=entries.length||to<0||to>=entries.length) return null;
+  const [moved]=entries.splice(from,1); entries.splice(to,0,moved);
+  return text.slice(0, lb+1) + '\n' + entries.join('\n') + text.slice(rb);
+}
+async function moveItemTo(kind, from, to){
+  setMsg('#list-msg','', '<span class="spin"></span>순서 변경 중…');
+  try{
+    const sd = await getFile('site/site-data.js');
+    const ix = await getFile('index.html');
+    const key = kind==='producer' ? 'producers' : 'songs';
+    const newSd = moveEntryTo(sd.text, key, entryRx(kind), from, to);
+    if(!newSd){ setMsg('#list-msg','err','이동 실패.'); return; }
     await commitFiles([
       { path:'site/site-data.js', content:newSd, encoding:'utf-8' },
       { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
