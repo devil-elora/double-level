@@ -24,7 +24,7 @@
   .row{ display:flex; gap:12px; flex-wrap:wrap; }
   .row > div{ flex:1; min-width:160px; }
   .chips{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:4px; }
-  .chip{ display:inline-flex; align-items:center; gap:7px; height:42px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:0 16px; font-size:13px; cursor:pointer; user-select:none; }
+  .chip{ display:inline-flex; align-items:center; gap:7px; height:42px; margin:0; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:0 16px; font-size:13px; cursor:pointer; user-select:none; }
   .chip input{ accent-color:var(--accent); }
   button{ font-family:inherit; cursor:pointer; }
   .btn{ height:44px; padding:0 20px; background:var(--accent); color:#000; border:0; border-radius:9px; font-size:14px; font-weight:700; }
@@ -123,17 +123,15 @@
 
     <!-- 프로듀서 -->
     <div class="card tabpane" data-pane="producer">
-      <div class="row">
-        <div><label>이름 *</label><input type="text" id="p-name" placeholder="Earcandy"></div>
-        <div><label>역할 * (복수 선택 가능)</label>
-          <div class="chips" id="p-roles">
-            <label class="chip"><input type="checkbox" value="Producer"> Producer</label>
-            <label class="chip"><input type="checkbox" value="Songwriter"> Songwriter</label>
-            <label class="chip"><input type="checkbox" value="Topliner"> Topliner</label>
-          </div>
-          <input type="text" id="p-role-custom" placeholder="기타 역할 (예: CEO · 쉼표로 여러 개)" style="margin-top:8px">
-        </div>
+      <label>이름 *</label>
+      <input type="text" id="p-name" placeholder="Earcandy">
+      <label>역할 * (복수 선택 가능)</label>
+      <div class="chips" id="p-roles">
+        <label class="chip"><input type="checkbox" value="Producer"> Producer</label>
+        <label class="chip"><input type="checkbox" value="Songwriter"> Songwriter</label>
+        <label class="chip"><input type="checkbox" value="Topliner"> Topliner</label>
       </div>
+      <input type="text" id="p-role-custom" placeholder="기타 역할 (예: CEO · 쉼표로 여러 개)" style="margin-top:8px">
       <label>사진 * (자동으로 긴 변 1200px JPG 로 변환)</label>
       <div class="drop" id="p-drop" tabindex="0">
         <input type="file" id="p-photo" accept="image/*" class="hide">
