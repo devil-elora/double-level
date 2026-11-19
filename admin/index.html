@@ -149,7 +149,7 @@
       </div>
       <label>위치</label>
       <select id="p-pos"><option value="__end">맨 끝에 추가</option></select>
-      <div style="margin-top:18px"><button class="btn" id="p-submit">사이트에 추가</button></div>
+      <div style="margin-top:18px"><button class="btn" id="p-submit">사이트에 추가</button> <button class="btn ghost hide" id="p-cancel">수정 취소</button></div>
       <div class="msg" id="p-msg"></div>
     </div>
 
@@ -184,7 +184,7 @@
       <input type="url" id="s-preview" placeholder="자동으로 채워집니다 · 직접 붙여넣어도 됨" style="margin-top:8px">
       <label>위치</label>
       <select id="s-pos"><option value="__end">맨 끝에 추가</option></select>
-      <div style="margin-top:18px"><button class="btn" id="s-submit">사이트에 추가</button></div>
+      <div style="margin-top:18px"><button class="btn" id="s-submit">사이트에 추가</button> <button class="btn ghost hide" id="s-cancel">수정 취소</button></div>
       <div class="msg" id="s-msg"></div>
     </div>
 
@@ -292,31 +292,95 @@ const J = v => JSON.stringify(v);
 
 /* ---------- 프로듀서 추가 ---------- */
 function buildRole(){ const ps=[]; const cu=$('#p-role-custom').value.trim(); if(cu) cu.split(/[,·]/).map(s=>s.trim()).filter(Boolean).forEach(s=>ps.push(s)); document.querySelectorAll('#p-roles input:checked').forEach(c=>ps.push(c.value)); return ps.join(' · '); }
+let editMode = null;
+function fld(line,key){ const a=line.indexOf(key+':'); if(a<0)return ''; let i=a+key.length+1; while(line[i]===' ')i++; const q=line[i]; if(q!=='"'&&q!=="'")return ''; const e=line.indexOf(q,i+1); return e<0?'':line.slice(i+1,e); }
+function arrFld(line,key){ const a=line.indexOf(key+':'); if(a<0)return []; const lb=line.indexOf('[',a); const rb=line.indexOf(']',lb); if(lb<0||rb<0)return []; return (line.slice(lb+1,rb).match(/["'][^"']*["']/g)||[]).map(s=>s.slice(1,-1)); }
+function nthEntryLine(text, key, rx, n){
+  const si=text.indexOf(key+':'); const rest=text.slice(si);
+  const end=rest.search(/\n[ \t]*\],/); const block=rest.slice(0,end);
+  const re=new RegExp(rx.source,'g'); let m,i=0,p=null;
+  while((m=re.exec(block))){ if(i===n){ p=si+m.index; break; } i++; }
+  if(p==null) return null;
+  const ls=text.lastIndexOf('\n',p)+1; let le=text.indexOf('\n',p); if(le===-1)le=text.length;
+  return text.slice(ls,le);
+}
+function replaceNthEntry(text, key, rx, n, newEntry){
+  const si=text.indexOf(key+':'); const rest=text.slice(si);
+  const end=rest.search(/\n[ \t]*\],/); const block=rest.slice(0,end);
+  const re=new RegExp(rx.source,'g'); let m,i=0,p=null;
+  while((m=re.exec(block))){ if(i===n){ p=si+m.index; break; } i++; }
+  if(p==null) return null;
+  const ls=text.lastIndexOf('\n',p)+1; let le=text.indexOf('\n',p); if(le===-1)le=text.length;
+  return text.slice(0,ls) + '    ' + newEntry + text.slice(le);
+}
+function switchTab(t){ const b=document.querySelector('.tabs button[data-tab="'+t+'"]'); if(b) b.click(); }
+async function startEdit(kind, index){
+  setMsg('#list-msg','', '<span class="spin"></span>불러오는 중…');
+  try{
+    const sd = await getFile('site/site-data.js');
+    const key = kind==='producer'?'producers':'songs';
+    const line = nthEntryLine(sd.text, key, entryRx(kind), index);
+    if(!line){ setMsg('#list-msg','err','항목을 찾지 못했습니다. 새로고침하세요.'); return; }
+    setMsg('#list-msg','','');
+    if(kind==='producer'){
+      switchTab('producer');
+      $('#p-name').value=fld(line,'name'); $('#p-ko').value=fld(line,'ko'); $('#p-insta').value=fld(line,'instagram');
+      const roles=fld(line,'role').split('·').map(s=>s.trim()).filter(Boolean), known=['Producer','Songwriter','Topliner'];
+      document.querySelectorAll('#p-roles input').forEach(c=>{ c.checked=roles.includes(c.value); });
+      $('#p-role-custom').value=roles.filter(r=>!known.includes(r)).join(', ');
+      pDrop.clear(); editMode={ kind:'producer', index, photo:fld(line,'photo') };
+      $('#p-submit').textContent='수정 저장'; $('#p-cancel').classList.remove('hide');
+      setMsg('#p-msg','','수정 중 — 사진은 바꿀 때만 올리세요');
+    } else {
+      switchTab('song');
+      $('#s-artist').value=fld(line,'artist'); $('#s-title').value=fld(line,'title'); $('#s-album').value=fld(line,'album');
+      const credits=arrFld(line,'credit');
+      document.querySelectorAll('[data-pane="song"] .chip input').forEach(c=>{ c.checked=credits.includes(c.value); });
+      $('#s-preview').value=fld(line,'preview');
+      sDrop.clear(); selectedCand=null; $('#s-cands').classList.add('hide');
+      editMode={ kind:'song', index, cover:fld(line,'cover') };
+      $('#s-submit').textContent='수정 저장'; $('#s-cancel').classList.remove('hide');
+      setMsg('#s-msg','','수정 중 — 커버는 바꿀 때만 올리세요');
+    }
+  }catch(e){ setMsg('#list-msg','err','실패: '+e.message); }
+}
+function cancelEdit(){
+  editMode=null;
+  $('#p-submit').textContent='사이트에 추가'; $('#s-submit').textContent='사이트에 추가';
+  $('#p-cancel').classList.add('hide'); $('#s-cancel').classList.add('hide');
+  ['#p-name','#p-ko','#p-insta','#p-role-custom'].forEach(s=>$(s).value='');
+  document.querySelectorAll('#p-roles input:checked').forEach(c=>c.checked=false); pDrop.clear();
+  ['#s-artist','#s-title','#s-album','#s-preview'].forEach(s=>$(s).value='');
+  document.querySelectorAll('[data-pane="song"] .chip input').forEach(c=>c.checked=false); sDrop.clear();
+  $('#s-cands').classList.add('hide'); selectedCand=null;
+  setMsg('#p-msg','',''); setMsg('#s-msg','','');
+}
+$('#p-cancel').onclick=cancelEdit; $('#s-cancel').onclick=cancelEdit;
 $('#p-submit').onclick = async () => {
   const name = $('#p-name').value.trim();
   const role = buildRole();
   const ko = $('#p-ko').value.trim();
   const insta = $('#p-insta').value.trim();
   const file = $('#p-photo').files[0];
-  const pos = $('#p-pos').value;
-  if(!name || !role || !file){ setMsg('#p-msg','err','이름 · 역할 · 사진은 필수입니다.'); return; }
-  $('#p-submit').disabled=true; setMsg('#p-msg','', '<span class="spin"></span>추가하는 중…');
+  const em = editMode && editMode.kind==='producer' ? editMode : null;
+  if(!name || !role || (!file && !em)){ setMsg('#p-msg','err','이름 · 역할 · 사진은 필수입니다.'); return; }
+  $('#p-submit').disabled=true; setMsg('#p-msg','', `<span class="spin"></span>${em?'수정하는':'추가하는'} 중…`);
   try{
-    const b64 = await resizeImage(file);
-    const fn = (slug(name) || ('p'+Date.now())) + '.jpg';
     const sd = await getFile('site/site-data.js');
     const ix = await getFile('index.html');
+    const imgs=[]; let fn;
+    if(file){ const b64=await resizeImage(file); fn=(slug(name)||('p'+Date.now()))+'.jpg'; imgs.push({ path:`site/img/${fn}`, content:b64, encoding:'base64' }); }
+    else { fn = em.photo; }
     const parts = [`name: ${J(name)}`, `ko: ${J(ko)}`, `role: ${J(role)}`, `photo: ${J(fn)}`];
     if(insta) parts.push(`instagram: ${J(insta)}`);
     const entry = `{ ${parts.join(', ')} },`;
-    let newSd = pos!=='__end' ? insertBeforeProducer(sd.text, pos, entry) : null;
-    if(!newSd) newSd = insertAtArrayEnd(sd.text, 'producers', entry);
-    await commitFiles([
-      { path:`site/img/${fn}`, content:b64, encoding:'base64' },
-      { path:'site/site-data.js', content:newSd, encoding:'utf-8' },
-      { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
-    ], `add producer: ${name}`);
-    setMsg('#p-msg','ok', `추가됨 — ${name}. 약 1분 뒤 사이트에 반영됩니다.`);
+    let newSd;
+    if(em){ newSd = replaceNthEntry(sd.text, 'producers', entryRx('producer'), em.index, entry); }
+    else { const pos=$('#p-pos').value; newSd = pos!=='__end' ? insertBeforeProducer(sd.text, pos, entry) : null; if(!newSd) newSd = insertAtArrayEnd(sd.text, 'producers', entry); }
+    if(!newSd){ setMsg('#p-msg','err','항목을 찾지 못했습니다.'); return; }
+    await commitFiles([ ...imgs, { path:'site/site-data.js', content:newSd, encoding:'utf-8' }, { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' } ], em?`edit producer: ${name}`:`add producer: ${name}`);
+    setMsg('#p-msg','ok', `${em?'수정됨':'추가됨'} — ${name}. 약 1분 뒤 반영됩니다.`);
+    editMode=null; $('#p-submit').textContent='사이트에 추가'; $('#p-cancel').classList.add('hide');
     ['#p-name','#p-ko','#p-insta','#p-role-custom'].forEach(s=>$(s).value=''); document.querySelectorAll('#p-roles input:checked').forEach(c=>c.checked=false); pDrop.clear();
     loadRoster();
   }catch(e){ setMsg('#p-msg','err','실패: '+e.message); }
@@ -328,27 +392,31 @@ $('#s-submit').onclick = async () => {
   const artist=$('#s-artist').value.trim(), title=$('#s-title').value.trim(), album=$('#s-album').value.trim();
   const credits=[...document.querySelectorAll('[data-pane="song"] .chip input:checked')].map(c=>c.value);
   const cover=$('#s-cover').files[0]; let preview=$('#s-preview').value.trim();
+  const em = editMode && editMode.kind==='song' ? editMode : null;
   if(!artist||!title||!album||!credits.length){ setMsg('#s-msg','err','아티스트 · 제목 · 앨범 · 크레딧은 필수입니다.'); return; }
-  $('#s-submit').disabled=true; setMsg('#s-msg','', '<span class="spin"></span>추가하는 중…');
+  $('#s-submit').disabled=true; setMsg('#s-msg','', `<span class="spin"></span>${em?'수정하는':'추가하는'} 중…`);
   try{
-    if(!preview){ const f=await findPreview(true); if(f) preview=f.preview; }
-    const files=[]; let coverName='', coverB64=null;
+    if(!preview && !em){ const f=await findPreview(true); if(f) preview=f.preview; }
+    const files=[]; let coverPath='', coverB64=null;
     if(cover){ coverB64 = await resizeImage(cover,1000,0.9); }
-    else if(selectedCand && selectedCand.artwork){ try{ const d=await api('fetchimg',{ url:selectedCand.artwork }); if(d.b64) coverB64=d.b64; }catch(e){} }
-    if(coverB64){ coverName=(slug(artist+'-'+title)||('cover'+Date.now()))+'.jpg'; files.push({ path:`site/img/covers/${coverName}`, content:coverB64, encoding:'base64' }); }
+    else if(!em && selectedCand && selectedCand.artwork){ try{ const d=await api('fetchimg',{ url:selectedCand.artwork }); if(d.b64) coverB64=d.b64; }catch(e){} }
+    if(coverB64){ const cn=(slug(artist+'-'+title)||('cover'+Date.now()))+'.jpg'; coverPath='covers/'+cn; files.push({ path:`site/img/covers/${cn}`, content:coverB64, encoding:'base64' }); }
+    else if(em && em.cover){ coverPath = em.cover; }
     const sd = await getFile('site/site-data.js');
     const ix = await getFile('index.html');
     const parts=[`artist: ${J(artist)}`, `title: ${J(title)}`, `album: ${J(album)}`, `credit: [${credits.map(J).join(', ')}]`];
-    if(coverName) parts.push(`cover: ${J('covers/'+coverName)}`);
+    if(coverPath) parts.push(`cover: ${J(coverPath)}`);
     if(preview) parts.push(`preview: ${J(preview)}`);
     const entry = `{ ${parts.join(', ')} },`;
-    const spos = $('#s-pos').value;
-    let newSd = spos!=='__end' ? insertBeforeNth(sd.text, 'songs', /\{ artist: ['"](.*?)['"][^\n]*?title: ['"](.*?)['"]/, parseInt(spos,10), entry) : null;
-    if(!newSd) newSd = insertAtArrayEnd(sd.text, 'songs', entry);
+    let newSd;
+    if(em){ newSd = replaceNthEntry(sd.text, 'songs', entryRx('song'), em.index, entry); }
+    else { const spos=$('#s-pos').value; newSd = spos!=='__end' ? insertBeforeNth(sd.text, 'songs', entryRx('song'), parseInt(spos,10), entry) : null; if(!newSd) newSd = insertAtArrayEnd(sd.text, 'songs', entry); }
+    if(!newSd){ setMsg('#s-msg','err','항목을 찾지 못했습니다.'); return; }
     files.push({ path:'site/site-data.js', content:newSd, encoding:'utf-8' });
     files.push({ path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' });
-    await commitFiles(files, `add song: ${artist} - ${title}`);
-    setMsg('#s-msg','ok', `추가됨 — ${artist} · ${title}. 약 1분 뒤 반영됩니다.`);
+    await commitFiles(files, em?`edit song: ${artist} - ${title}`:`add song: ${artist} - ${title}`);
+    setMsg('#s-msg','ok', `${em?'수정됨':'추가됨'} — ${artist} · ${title}. 약 1분 뒤 반영됩니다.`);
+    editMode=null; $('#s-submit').textContent='사이트에 추가'; $('#s-cancel').classList.add('hide');
     ['#s-artist','#s-title','#s-album','#s-preview'].forEach(s=>$(s).value=''); sDrop.clear();
     $('#s-cands').classList.add('hide'); $('#s-cands').innerHTML=''; $('#s-find-msg').textContent=''; selectedCand=null;
     document.querySelectorAll('[data-pane="song"] .chip input').forEach(c=>c.checked=false);
@@ -438,11 +506,13 @@ function renderListView(){
     h+=`<div class="list-item">${main}<span class="r">${sub}</span><span class="ops">`
       +`<button type="button" class="op mv" data-kind="${kind}" data-i="${i}" data-dir="-1"${i===0?' disabled':''}>↑</button>`
       +`<button type="button" class="op mv" data-kind="${kind}" data-i="${i}" data-dir="1"${i===arr.length-1?' disabled':''}>↓</button>`
+      +`<button type="button" class="op edit" data-kind="${kind}" data-i="${i}">수정</button>`
       +`<button type="button" class="del" data-kind="${kind}" data-i="${i}" data-label="${label}">삭제</button></span></div>`;
   });
   $('#list-body').innerHTML=h;
   $('#list-body').querySelectorAll('.del').forEach(b=>b.onclick=()=>removeItem(b.dataset.kind, parseInt(b.dataset.i,10), b.dataset.label));
   $('#list-body').querySelectorAll('.mv').forEach(b=>b.onclick=()=>moveItem(b.dataset.kind, parseInt(b.dataset.i,10), parseInt(b.dataset.dir,10)));
+  $('#list-body').querySelectorAll('.edit').forEach(b=>b.onclick=()=>startEdit(b.dataset.kind, parseInt(b.dataset.i,10)));
 }
 document.querySelectorAll('.subtab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.subtab').forEach(x=>x.classList.toggle('on', x===b));
