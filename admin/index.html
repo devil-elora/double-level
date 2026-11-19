@@ -171,13 +171,15 @@
         </div>
         <div class="drop-preview hide"></div>
       </div>
-      <label>미리듣기 (아티스트·곡 제목으로 iTunes 자동 검색)</label>
+      <label>미리듣기 (아티스트·곡 제목으로 자동 검색)</label>
       <div class="find-row">
-        <button type="button" class="btn ghost" id="s-find">iTunes에서 미리듣기 찾기</button>
+        <button type="button" class="btn ghost" id="s-find">미리듣기 · 커버 찾기</button>
         <span class="note" id="s-find-msg"></span>
       </div>
       <div id="s-cands" class="cands hide"></div>
       <input type="url" id="s-preview" placeholder="자동으로 채워집니다 · 직접 붙여넣어도 됨" style="margin-top:8px">
+      <label>위치</label>
+      <select id="s-pos"><option value="__end">맨 끝에 추가</option></select>
       <div style="margin-top:18px"><button class="btn" id="s-submit">사이트에 추가</button></div>
       <div class="msg" id="s-msg"></div>
     </div>
@@ -269,6 +271,19 @@ function insertBeforeProducer(text, beforeName, entry){
   const ls = text.lastIndexOf('\n', i)+1;
   return text.slice(0,ls) + '    ' + entry + '\n' + text.slice(ls);
 }
+function insertBeforeNth(text, key, rx, n, entry){
+  const si = text.indexOf(key+':');
+  const rest = text.slice(si);
+  const end = rest.search(/\n[ \t]*\],/);
+  const block = rest.slice(0, end);
+  const re = new RegExp(rx.source, 'g');
+  let m, i=0, target=null;
+  while((m=re.exec(block))){ if(i===n){ target=m; break; } i++; }
+  if(!target) return null;
+  const abs = si + target.index;
+  const ls = text.lastIndexOf('\n', abs) + 1;
+  return text.slice(0, ls) + '    ' + entry + '\n' + text.slice(ls);
+}
 const J = v => JSON.stringify(v);
 
 /* ---------- 프로듀서 추가 ---------- */
@@ -313,28 +328,33 @@ $('#s-submit').onclick = async () => {
   $('#s-submit').disabled=true; setMsg('#s-msg','', '<span class="spin"></span>추가하는 중…');
   try{
     if(!preview){ const f=await findPreview(true); if(f) preview=f.preview; }
-    const files=[]; let coverName='';
-    if(cover){ const b64=await resizeImage(cover,1000,0.9); coverName=(slug(artist+'-'+title)||('cover'+Date.now()))+'.jpg'; files.push({ path:`site/img/covers/${coverName}`, content:b64, encoding:'base64' }); }
+    const files=[]; let coverName='', coverB64=null;
+    if(cover){ coverB64 = await resizeImage(cover,1000,0.9); }
+    else if(selectedCand && selectedCand.artwork){ try{ const d=await api('fetchimg',{ url:selectedCand.artwork }); if(d.b64) coverB64=d.b64; }catch(e){} }
+    if(coverB64){ coverName=(slug(artist+'-'+title)||('cover'+Date.now()))+'.jpg'; files.push({ path:`site/img/covers/${coverName}`, content:coverB64, encoding:'base64' }); }
     const sd = await getFile('site/site-data.js');
     const ix = await getFile('index.html');
     const parts=[`artist: ${J(artist)}`, `title: ${J(title)}`, `album: ${J(album)}`, `credit: [${credits.map(J).join(', ')}]`];
     if(coverName) parts.push(`cover: ${J('covers/'+coverName)}`);
     if(preview) parts.push(`preview: ${J(preview)}`);
     const entry = `{ ${parts.join(', ')} },`;
-    const newSd = insertAtArrayEnd(sd.text, 'songs', entry);
+    const spos = $('#s-pos').value;
+    let newSd = spos!=='__end' ? insertBeforeNth(sd.text, 'songs', /\{ artist: ['"](.*?)['"][^\n]*?title: ['"](.*?)['"]/, parseInt(spos,10), entry) : null;
+    if(!newSd) newSd = insertAtArrayEnd(sd.text, 'songs', entry);
     files.push({ path:'site/site-data.js', content:newSd, encoding:'utf-8' });
     files.push({ path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' });
     await commitFiles(files, `add song: ${artist} - ${title}`);
     setMsg('#s-msg','ok', `추가됨 — ${artist} · ${title}. 약 1분 뒤 반영됩니다.`);
     ['#s-artist','#s-title','#s-album','#s-preview'].forEach(s=>$(s).value=''); sDrop.clear();
-    $('#s-cands').classList.add('hide'); $('#s-cands').innerHTML=''; $('#s-find-msg').textContent='';
+    $('#s-cands').classList.add('hide'); $('#s-cands').innerHTML=''; $('#s-find-msg').textContent=''; selectedCand=null;
     document.querySelectorAll('[data-pane="song"] .chip input').forEach(c=>c.checked=false);
+    loadRoster();
   }catch(e){ setMsg('#s-msg','err','실패: '+e.message); }
   finally{ $('#s-submit').disabled=false; }
 };
 
-/* ---------- 음원: iTunes 미리듣기 자동 찾기 ---------- */
-let sAudio=null;
+/* ---------- 음원: 미리듣기·커버 자동 찾기 ---------- */
+let sAudio=null, selectedCand=null;
 async function findPreview(auto){
   const artist=$('#s-artist').value.trim(), title=$('#s-title').value.trim();
   if(!artist||!title){ if(!auto) $('#s-find-msg').textContent='아티스트·곡 제목을 먼저 입력하세요.'; return null; }
@@ -342,19 +362,19 @@ async function findPreview(auto){
   try{
     const d = await api('itunes', { term: artist+' '+title });
     const rs = d.results||[];
-    if(!rs.length){ $('#s-find-msg').textContent='못 찾음 — URL을 직접 넣어주세요.'; $('#s-cands').classList.add('hide'); return null; }
-    if(auto){ $('#s-preview').value = rs[0].preview; $('#s-find-msg').textContent='자동 선택: '+rs[0].track; return rs[0]; }
+    if(!rs.length){ $('#s-find-msg').textContent='못 찾음 — 직접 넣어주세요.'; $('#s-cands').classList.add('hide'); return null; }
+    if(auto){ selectedCand=rs[0]; $('#s-preview').value=rs[0].preview; $('#s-find-msg').textContent='자동 선택: '+rs[0].track; return rs[0]; }
     renderCands(rs);
-    $('#s-find-msg').textContent = rs.length+'개 찾음 — 맞는 걸 고르세요';
+    $('#s-find-msg').textContent = rs.length+'개 찾음 — 맞는 걸 고르세요 (커버도 같이 올라감)';
     return rs[0];
   }catch(e){ $('#s-find-msg').textContent='오류: '+e.message; return null; }
   finally{ $('#s-find').disabled=false; }
 }
 function renderCands(rs){
   const box=$('#s-cands'); box.classList.remove('hide');
-  box.innerHTML = rs.map(r=>`<div class="cand"><button type="button" class="cand-play" data-url="${esc(r.preview)}">▶</button><div class="cand-info"><div class="cand-track">${esc(r.track)}</div><div class="cand-sub">${esc(r.artist)} · ${esc(r.album)}</div></div><button type="button" class="cand-pick" data-url="${esc(r.preview)}">선택</button></div>`).join('');
+  box.innerHTML = rs.map((r,idx)=>`<div class="cand"><button type="button" class="cand-play" data-url="${esc(r.preview)}">▶</button><div class="cand-info"><div class="cand-track">${esc(r.track)}</div><div class="cand-sub">${esc(r.artist)} · ${esc(r.album)}</div></div><button type="button" class="cand-pick" data-idx="${idx}">선택</button></div>`).join('');
   box.querySelectorAll('.cand-pick').forEach(b=>b.onclick=()=>{
-    $('#s-preview').value=b.dataset.url;
+    const r=rs[parseInt(b.dataset.idx,10)]; selectedCand=r; $('#s-preview').value=r.preview;
     box.querySelectorAll('.cand').forEach(c=>c.classList.remove('sel'));
     b.closest('.cand').classList.add('sel');
     $('#s-find-msg').textContent='선택됨 ✓';
@@ -362,9 +382,10 @@ function renderCands(rs){
   box.querySelectorAll('.cand-play').forEach(b=>b.onclick=()=>{
     try{ if(sAudio) sAudio.pause(); sAudio=new Audio(b.dataset.url); sAudio.play().catch(()=>{}); }catch(e){}
   });
-  const first=box.querySelector('.cand'); if(first){ first.classList.add('sel'); $('#s-preview').value=first.querySelector('.cand-pick').dataset.url; }
+  if(rs[0]){ selectedCand=rs[0]; $('#s-preview').value=rs[0].preview; box.querySelector('.cand').classList.add('sel'); }
 }
 $('#s-find').onclick = () => findPreview(false);
+['#s-artist','#s-title'].forEach(s=>$(s).addEventListener('input', ()=>{ selectedCand=null; $('#s-cands').classList.add('hide'); }));
 
 /* ---------- 목록 + 위치 선택 ---------- */
 let producersCache=[];
@@ -379,9 +400,11 @@ async function loadRoster(){
     const sd = await getFile('site/site-data.js');
     const prod = parseList(sd.text,'producers', /\{ name: ['"](.*?)['"][^\n]*?role: ['"](.*?)['"]/g);
     producersCache = prod.map(m=>({name:m[1],role:m[2]}));
-    // 위치 드롭다운 채우기
     const sel=$('#p-pos'); sel.innerHTML='<option value="__end">맨 끝에 추가</option>';
     producersCache.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.textContent=`"${p.name}" 앞에`; sel.appendChild(o); });
+    const songs = parseList(sd.text,'songs', /\{ artist: ['"](.*?)['"][^\n]*?title: ['"](.*?)['"]/g);
+    const ssel=$('#s-pos'); ssel.innerHTML='<option value="__end">맨 끝에 추가</option>';
+    songs.forEach((m,i)=>{ const o=document.createElement('option'); o.value=String(i); o.textContent=`"${m[2]}" (${m[1]}) 앞에`; ssel.appendChild(o); });
   }catch(e){}
 }
 async function loadList(){
