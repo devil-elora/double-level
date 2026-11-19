@@ -124,14 +124,13 @@
     <div class="card tabpane" data-pane="producer">
       <div class="row">
         <div><label>이름 *</label><input type="text" id="p-name" placeholder="Earcandy"></div>
-        <div><label>역할 *</label>
-          <select id="p-role">
-            <option value="Producer">프로듀서 (Producer)</option>
-            <option value="Songwriter">작사가 (Songwriter)</option>
-            <option value="Topliner">탑라이너 (Topliner)</option>
-            <option value="__custom">직접 입력…</option>
-          </select>
-          <input type="text" id="p-role-custom" class="hide" placeholder="역할 직접 입력" style="margin-top:8px">
+        <div><label>역할 * (복수 선택 가능)</label>
+          <div class="chips" id="p-roles">
+            <label class="chip"><input type="checkbox" value="Producer"> Producer</label>
+            <label class="chip"><input type="checkbox" value="Songwriter"> Songwriter</label>
+            <label class="chip"><input type="checkbox" value="Topliner"> Topliner</label>
+          </div>
+          <input type="text" id="p-role-custom" placeholder="기타 역할 (예: CEO · 쉼표로 여러 개)" style="margin-top:8px">
         </div>
       </div>
       <label>사진 * (자동으로 긴 변 1200px JPG 로 변환)</label>
@@ -291,10 +290,10 @@ function insertBeforeNth(text, key, rx, n, entry){
 const J = v => JSON.stringify(v);
 
 /* ---------- 프로듀서 추가 ---------- */
-$('#p-role').onchange = e => $('#p-role-custom').classList.toggle('hide', e.target.value!=='__custom');
+function buildRole(){ const ps=[]; const cu=$('#p-role-custom').value.trim(); if(cu) cu.split(/[,·]/).map(s=>s.trim()).filter(Boolean).forEach(s=>ps.push(s)); document.querySelectorAll('#p-roles input:checked').forEach(c=>ps.push(c.value)); return ps.join(' · '); }
 $('#p-submit').onclick = async () => {
   const name = $('#p-name').value.trim();
-  let role = $('#p-role').value; if(role==='__custom') role = $('#p-role-custom').value.trim();
+  const role = buildRole();
   const ko = $('#p-ko').value.trim();
   const insta = $('#p-insta').value.trim();
   const file = $('#p-photo').files[0];
@@ -317,7 +316,7 @@ $('#p-submit').onclick = async () => {
       { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
     ], `add producer: ${name}`);
     setMsg('#p-msg','ok', `추가됨 — ${name}. 약 1분 뒤 사이트에 반영됩니다.`);
-    ['#p-name','#p-ko','#p-insta'].forEach(s=>$(s).value=''); pDrop.clear();
+    ['#p-name','#p-ko','#p-insta','#p-role-custom'].forEach(s=>$(s).value=''); document.querySelectorAll('#p-roles input:checked').forEach(c=>c.checked=false); pDrop.clear();
     loadRoster();
   }catch(e){ setMsg('#p-msg','err','실패: '+e.message); }
   finally{ $('#p-submit').disabled=false; }
