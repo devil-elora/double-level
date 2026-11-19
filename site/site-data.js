@@ -47,8 +47,6 @@ window.SITE = {
      예: { name: 'CHILLER', ko: 'Kim Kang San', role: 'Producer · Songwriter', photo: 'chiller.jpg', instagram: 'https://...' } */
   producers: [
     { name: 'CHILLER', ko: 'Kim Kang San', role: 'CEO · Producer · Songwriter', photo: 'ceo.jpg', instagram: 'https://www.instagram.com/777chiller/' },
-    { name: "가윤", ko: "", role: "Producer", photo: "p1795074715710.jpg" },
-    { name: "가윤", ko: "", role: "Producer", photo: "p1795073159347.jpg" },
     { name: 'COLL!N',  ko: 'Kim Hyun Woo', role: 'Topliner',                   photo: 'collin.jpg' },
     { name: 'Kyaku',   ko: '',          role: 'Producer',                photo: 'kyaku.jpg' },
     { name: 'Owl',     ko: 'Jo Jung Hee', role: 'Producer',                  photo: 'owl.jpg?v=2' },
@@ -68,8 +66,6 @@ window.SITE = {
     { artist: 'NCT WISH',          title: 'If You Love Me Let Me Know', album: 'Would You Marry Me? OST Part.3', credit: ['Lyrics', 'Composition'], cover: 'covers/nct-wish.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/86/8b/c2/868bc2c4-5da6-f27b-8a75-aae0e32df9b5/mzaf_8256727450170037493.plus.aac.p.m4a' },
     { artist: 'ENHYPEN',           title: 'Sleep Tight',              album: 'THE SIN : VANISH', credit: ['Lyrics', 'Composition'], cover: 'covers/enhypen-sleep-tight.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/22/3e/6f/223e6f7c-7b11-270a-3bc7-35bf1a2b91ae/mzaf_1374557183856800650.plus.aac.p.m4a' },
     { artist: 'PLAVE',             title: 'Blossom Parade',           album: 'Caligo Pt.2', credit: ['Composition', 'Arrangement'], cover: 'covers/plave.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2c/d4/70/2cd470ee-5111-8aca-8b88-dc52e11868ce/mzaf_9485076833344321189.plus.aac.p.m4a' },
-    { artist: "하츠투하츠", title: "RUDE", album: "RUDE", credit: ["Lyrics", "Composition"], cover: "covers/rude.jpg", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/01/3c/36/013c3684-7121-8f9f-6eb5-00b610ac055c/mzaf_16203782190977593201.plus.aac.p.m4a" },
-    { artist: "아이유", title: "무릎", album: "무릎", credit: ["Lyrics", "Composition"], cover: "covers/cover1795074429840.jpg", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/b9/84/fd/b984fd65-687a-cd9e-8038-ead48a3bbb60/mzaf_2099700060415143799.plus.aac.p.m4a" },
     { artist: 'ILLIT',             title: 'Mamihlapinatapai',         album: 'MAMIHLAPINATAPAI', credit: ['Lyrics', 'Composition'], cover: 'covers/illit-mamihlapinatapai.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/88/97/04/88970483-95d9-10f7-a55c-f54707c84ca1/mzaf_1091280913231081039.plus.aac.p.m4a' },
     { artist: 'EVAN',              title: 'going home',               album: 'Death of me', credit: ['Lyrics', 'Composition'], cover: 'covers/evan-going-home.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/bd/43/cb/bd43cb25-ef4a-9f02-c4c3-70aafcf5c439/mzaf_15884386153592900940.plus.aac.p.m4a' },
     { artist: 'KickFlip',          title: 'Secret Nightmare',         album: 'My First Flip', credit: ['Lyrics', 'Composition'], cover: 'covers/kickflip.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/bc/d3/ce/bcd3ce68-65f7-9724-a3ac-2320bf7bd8c9/mzaf_1883341533475515798.plus.aac.p.m4a' },
@@ -81,7 +77,6 @@ window.SITE = {
     { artist: 'Henry',             title: 'Only Today',               album: 'Only Today', credit: ['Lyrics'] },
     { artist: 'TIOT',              title: '다섯시간의 조각들',          album: 'Time for Us', credit: ['Lyrics', 'Composition'], cover: 'covers/tiot-time-for-us.webp', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2b/6c/73/2b6c73ed-c765-738d-5896-f58eecdf714b/mzaf_12800240483291486193.plus.aac.p.m4a' },
     { artist: 'DAILY : DIRECTION', title: 'WHO I AM',                 album: 'WHICH WAY', credit: ['Lyrics', 'Composition', 'Arrangement'], cover: 'covers/daily-direction-who-i-am.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/56/b0/80/56b080f8-7fd7-9dec-3456-bc2e4e4b0a49/mzaf_8507421747912344035.plus.aac.p.m4a' },
-    { artist: "아이유", title: "밤편지", album: "밤편지", credit: ["Lyrics", "Composition"], preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/5a/43/d5/5a43d5c0-8b9a-2a91-dd9c-405bfd51b82f/mzaf_2888874735741039485.plus.aac.p.m4a" },
   ],
 
   /* ABOUT 문단 */
