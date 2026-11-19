@@ -78,6 +78,7 @@ window.SITE = {
     { artist: 'Henry',             title: 'Only Today',               album: 'Only Today', credit: ['Lyrics'] },
     { artist: 'TIOT',              title: '다섯시간의 조각들',          album: 'Time for Us', credit: ['Lyrics', 'Composition'], cover: 'covers/tiot-time-for-us.webp', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2b/6c/73/2b6c73ed-c765-738d-5896-f58eecdf714b/mzaf_12800240483291486193.plus.aac.p.m4a' },
     { artist: 'DAILY : DIRECTION', title: 'WHO I AM',                 album: 'WHICH WAY', credit: ['Lyrics', 'Composition', 'Arrangement'], cover: 'covers/daily-direction-who-i-am.jpg', preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/56/b0/80/56b080f8-7fd7-9dec-3456-bc2e4e4b0a49/mzaf_8507421747912344035.plus.aac.p.m4a' },
+    { artist: "아이유", title: "밤편지", album: "밤편지", credit: ["Lyrics", "Composition"], preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/5a/43/d5/5a43d5c0-8b9a-2a91-dd9c-405bfd51b82f/mzaf_2888874735741039485.plus.aac.p.m4a" },
   ],
 
   /* ABOUT 문단 */
