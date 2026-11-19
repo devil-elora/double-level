@@ -47,7 +47,6 @@ window.SITE = {
      예: { name: 'CHILLER', ko: 'Kim Kang San', role: 'Producer · Songwriter', photo: 'chiller.jpg', instagram: 'https://...' } */
   producers: [
     { name: 'CHILLER', ko: 'Kim Kang San', role: 'CEO · Producer · Songwriter', photo: 'ceo.jpg', instagram: 'https://www.instagram.com/777chiller/' },
-    { name: "가윤", ko: "", role: "Producer · Songwriter", photo: "p1795078257520.jpg" },
     { name: 'COLL!N',  ko: 'Kim Hyun Woo', role: 'Topliner',                   photo: 'collin.jpg' },
     { name: 'Kyaku',   ko: '',          role: 'Producer',                photo: 'kyaku.jpg' },
     { name: 'Owl',     ko: 'Jo Jung Hee', role: 'Producer',                  photo: 'owl.jpg?v=2' },
