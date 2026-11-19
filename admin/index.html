@@ -83,7 +83,11 @@
   .subtabs{ display:flex; gap:6px; margin-bottom:16px; }
   .subtab{ flex:1; height:36px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; color:var(--txt3); font-size:13px; font-weight:600; }
   .subtab.on{ background:var(--accent); color:#000; border-color:var(--accent); }
-  .list-item .del{ margin-left:12px; flex:0 0 auto; background:transparent; border:1px solid var(--line); color:var(--txt3); font-size:12px; padding:4px 11px; border-radius:7px; }
+  .list-item .ops{ margin-left:12px; display:flex; align-items:center; gap:6px; flex:0 0 auto; }
+  .op{ background:transparent; border:1px solid var(--line); color:var(--txt3); font-size:12px; padding:4px 9px; border-radius:7px; line-height:1; }
+  .op:hover{ border-color:#5a5a6e; color:var(--txt); }
+  .op:disabled{ opacity:.3; cursor:default; }
+  .list-item .del{ flex:0 0 auto; background:transparent; border:1px solid var(--line); color:var(--txt3); font-size:12px; padding:4px 11px; border-radius:7px; }
   .list-item .del:hover{ border-color:var(--err); color:var(--err); }
 </style>
 </head>
@@ -407,18 +411,110 @@ async function loadRoster(){
     songs.forEach((m,i)=>{ const o=document.createElement('option'); o.value=String(i); o.textContent=`"${m[2]}" (${m[1]}) 앞에`; ssel.appendChild(o); });
   }catch(e){}
 }
+let listData = { prod: [], songs: [] };
+let listView = 'roster';
+function entryRx(kind){ return kind==='producer' ? /\{ name: ['"](.*?)['"][^\n]*?role: ['"](.*?)['"]/ : /\{ artist: ['"](.*?)['"][^\n]*?title: ['"](.*?)['"]/; }
 async function loadList(){
-  $('#list-body').innerHTML='<span class="note">불러오는 중…</span>';
+  $('#list-body').innerHTML='<span class="note">불러오는 중…</span>'; setMsg('#list-msg','','');
   try{
     const sd = await getFile('site/site-data.js');
-    const prod = parseList(sd.text,'producers', /\{ name: ['"](.*?)['"][^\n]*?role: ['"](.*?)['"]/g);
-    const songs = parseList(sd.text,'songs', /\{ artist: ['"](.*?)['"][^\n]*?title: ['"](.*?)['"]/g);
-    let h = `<div class="note" style="margin-bottom:8px">ROSTER ${prod.length}</div>`;
-    prod.forEach(m=>h+=`<div class="list-item">${esc(m[1])}<span class="r">${esc(m[2])}</span></div>`);
-    h += `<div class="note" style="margin:18px 0 8px">DISCOGRAPHY ${songs.length}</div>`;
-    songs.forEach(m=>h+=`<div class="list-item">${esc(m[2])}<span class="r">${esc(m[1])}</span></div>`);
-    $('#list-body').innerHTML=h;
+    listData.prod = parseList(sd.text,'producers', new RegExp(entryRx('producer').source,'g'));
+    listData.songs = parseList(sd.text,'songs', new RegExp(entryRx('song').source,'g'));
+    $('#sub-roster').textContent = `ROSTER ${listData.prod.length}`;
+    $('#sub-disco').textContent = `DISCOGRAPHY ${listData.songs.length}`;
+    renderListView();
   }catch(e){ $('#list-body').innerHTML=`<span class="msg err">목록 실패: ${esc(e.message)}</span>`; }
+}
+function renderListView(){
+  const roster = listView==='roster';
+  const arr = roster ? listData.prod : listData.songs;
+  const kind = roster ? 'producer' : 'song';
+  let h='';
+  if(!arr.length) h='<span class="note">아직 없습니다.</span>';
+  else arr.forEach((m,i)=>{
+    const main = roster ? esc(m[1]) : esc(m[2]);
+    const sub  = roster ? esc(m[2]) : esc(m[1]);
+    const label = roster ? esc(m[1]) : `${esc(m[1])} · ${esc(m[2])}`;
+    h+=`<div class="list-item">${main}<span class="r">${sub}</span><span class="ops">`
+      +`<button type="button" class="op mv" data-kind="${kind}" data-i="${i}" data-dir="-1"${i===0?' disabled':''}>↑</button>`
+      +`<button type="button" class="op mv" data-kind="${kind}" data-i="${i}" data-dir="1"${i===arr.length-1?' disabled':''}>↓</button>`
+      +`<button type="button" class="del" data-kind="${kind}" data-i="${i}" data-label="${label}">삭제</button></span></div>`;
+  });
+  $('#list-body').innerHTML=h;
+  $('#list-body').querySelectorAll('.del').forEach(b=>b.onclick=()=>removeItem(b.dataset.kind, parseInt(b.dataset.i,10), b.dataset.label));
+  $('#list-body').querySelectorAll('.mv').forEach(b=>b.onclick=()=>moveItem(b.dataset.kind, parseInt(b.dataset.i,10), parseInt(b.dataset.dir,10)));
+}
+document.querySelectorAll('.subtab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.subtab').forEach(x=>x.classList.toggle('on', x===b));
+  listView = b.dataset.sub;
+  renderListView();
+});
+function removeNthEntry(text, key, rx, n){
+  const si = text.indexOf(key+':');
+  const rest = text.slice(si);
+  const end = rest.search(/\n[ \t]*\],/);
+  const block = rest.slice(0, end);
+  const re = new RegExp(rx.source, 'g');
+  let m, i=0, target=null;
+  while((m=re.exec(block))){ if(i===n){ target=m; break; } i++; }
+  if(!target) return null;
+  const abs = si + target.index;
+  const ls = text.lastIndexOf('\n', abs) + 1;
+  let le = text.indexOf('\n', abs); if(le===-1) le = text.length;
+  return text.slice(0, ls) + text.slice(le + 1);
+}
+async function removeItem(kind, index, label){
+  if(!confirm(`"${label}" 를 사이트에서 뺄까요?\n되돌리려면 다시 추가해야 합니다.`)) return;
+  setMsg('#list-msg','', '<span class="spin"></span>빼는 중…');
+  try{
+    const sd = await getFile('site/site-data.js');
+    const key = kind==='producer' ? 'producers' : 'songs';
+    const rx = entryRx(kind);
+    const list = parseList(sd.text, key, new RegExp(rx.source,'g'));
+    const cur = list[index];
+    const curLabel = cur ? (kind==='producer' ? cur[1] : `${cur[1]} · ${cur[2]}`) : null;
+    if(curLabel !== label){ setMsg('#list-msg','err','목록이 바뀌었습니다. 새로고침 후 다시 시도하세요.'); loadList(); return; }
+    const ix = await getFile('index.html');
+    const newSd = removeNthEntry(sd.text, key, rx, index);
+    if(!newSd){ setMsg('#list-msg','err','항목을 찾지 못했습니다.'); return; }
+    await commitFiles([
+      { path:'site/site-data.js', content:newSd, encoding:'utf-8' },
+      { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
+    ], kind==='producer' ? `remove producer: ${label}` : `remove song: ${label}`);
+    setMsg('#list-msg','ok', `뺐습니다 — ${label}. 약 1분 뒤 반영됩니다.`);
+    loadList(); loadRoster();
+  }catch(e){ setMsg('#list-msg','err','실패: '+e.message); }
+}
+function moveEntry(text, key, rx, n, dir){
+  const target = n + dir;
+  const si = text.indexOf(key+':');
+  const rest = text.slice(si);
+  const end = rest.search(/\n[ \t]*\],/);
+  const block = rest.slice(0, end);
+  const re = new RegExp(rx.source, 'g');
+  const idxs=[]; let m; while((m=re.exec(block))) idxs.push(si + m.index);
+  if(n<0 || n>=idxs.length || target<0 || target>=idxs.length) return null;
+  const a = Math.min(n, target), b = Math.max(n, target);
+  const aStart = text.lastIndexOf('\n', idxs[a]) + 1, aEnd = text.indexOf('\n', idxs[a]);
+  const bStart = text.lastIndexOf('\n', idxs[b]) + 1, bEnd = text.indexOf('\n', idxs[b]);
+  const aLine = text.slice(aStart, aEnd), bLine = text.slice(bStart, bEnd);
+  return text.slice(0, aStart) + bLine + text.slice(aEnd, bStart) + aLine + text.slice(bEnd);
+}
+async function moveItem(kind, index, dir){
+  setMsg('#list-msg','', '<span class="spin"></span>순서 변경 중…');
+  try{
+    const sd = await getFile('site/site-data.js');
+    const ix = await getFile('index.html');
+    const key = kind==='producer' ? 'producers' : 'songs';
+    const newSd = moveEntry(sd.text, key, entryRx(kind), index, dir);
+    if(!newSd){ setMsg('#list-msg','err','이동할 수 없습니다.'); return; }
+    await commitFiles([
+      { path:'site/site-data.js', content:newSd, encoding:'utf-8' },
+      { path:'index.html', content:bumpVersion(ix.text), encoding:'utf-8' },
+    ], `reorder ${key}`);
+    setMsg('#list-msg','ok','순서 변경됨. 약 1분 뒤 사이트 반영.');
+    loadList(); loadRoster();
+  }catch(e){ setMsg('#list-msg','err','실패: '+e.message); }
 }
 const esc = s => (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 $('#list-reload').onclick = loadList;
